@@ -1,0 +1,1 @@
+cross-check: 300 random key/block pairs, 700 comparisons (encrypt + decrypt) against pycryptodome and openssl: 0 mismatches

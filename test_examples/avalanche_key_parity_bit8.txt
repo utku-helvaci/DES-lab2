@@ -1,0 +1,26 @@
+Avalanche effect in DES: key bit 8 flipped
+  key       0f1571c947d9e859   0e1571c947d9e859
+  plaintext 02468aceeca86420   02468aceeca86420
+
+Round  first Li|Ri        second Li|Ri       diff  
+-----  ----------------   ----------------   ----
+    0  02468aceeca86420   02468aceeca86420      0  
+    1  3cf03c0fbad22845   3cf03c0fbad22845      0  
+    2  bad2284599e9b723   bad2284599e9b723      0  
+    3  99e9b7230bae3b9e   99e9b7230bae3b9e      0  
+    4  0bae3b9e42415649   0bae3b9e42415649      0  
+    5  4241564918b3fa41   4241564918b3fa41      0  
+    6  18b3fa419616fe23   18b3fa419616fe23      0  
+    7  9616fe2367117cf2   9616fe2367117cf2      0  
+    8  67117cf2c11bfc09   67117cf2c11bfc09      0  
+    9  c11bfc09887fbc6c   c11bfc09887fbc6c      0  
+   10  887fbc6c600f7e8b   887fbc6c600f7e8b      0  
+   11  600f7e8bf596506e   600f7e8bf596506e      0  
+   12  f596506e738538b8   f596506e738538b8      0  
+   13  738538b8c6a62c4e   738538b8c6a62c4e      0  
+   14  c6a62c4e56b0bd75   c6a62c4e56b0bd75      0  
+   15  56b0bd7575e8fd8f   56b0bd7575e8fd8f      0  
+   16  75e8fd8f25896490   75e8fd8f25896490      0  
+ IP-1  da02ce3a89ecac3b   da02ce3a89ecac3b      0  
+
+Ciphertexts differ in 0 of 64 bits.

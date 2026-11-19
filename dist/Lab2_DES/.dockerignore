@@ -1,0 +1,6 @@
+*
+!Makefile
+!src/
+!tests/
+!test_examples/messages_machine_a.txt
+!test_examples/messages_machine_b.txt

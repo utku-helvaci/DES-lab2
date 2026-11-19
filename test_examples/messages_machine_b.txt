@@ -1,0 +1,5 @@
+Hi Machine A! Machine B received and decrypted your message.
+Teşekkürler - UTF-8 characters survived encryption.
+An 8-byte message gets one full block of padding (08 x 8).
+Four equal plaintext blocks, but CBC gave four different ciphertext blocks.
+Bye! Closing the session.

@@ -1,0 +1,48 @@
+digraph DES {
+  
+  graph [fontname="Arial", fontsize=11, bgcolor="white", pad=0.15, newrank=true];
+  node  [shape=box, style="rounded,filled", fontname="Arial", fontsize=10.5, fontcolor="#1a1a19",
+         fillcolor="#eaf2fc", color="#2a78d6", penwidth=1.3, margin="0.14,0.06"];
+  edge  [color="#4a4a48", arrowsize=0.7, penwidth=1.1, fontname="Arial", fontsize=9.5,
+         fontcolor="#3a3a38"];
+
+  ranksep=0.30; nodesep=0.55;
+  P   [label="Plaintext block P (64 bits)", fillcolor="white", color="#8a8984", style="rounded"];
+  IP  [label=<<b>Initial permutation IP</b>  [2.1]<br/><font face="Courier New" point-size="9">des_initial_permutation()</font>>];
+  R1  [label=<<b>Round 1</b>  [2.3, 2.5-2.9]<br/><font face="Courier New" point-size="9">des_round(state, K1)</font>>];
+  R2  [label=<<b>Round 2</b><br/><font face="Courier New" point-size="9">des_round(state, K2)</font>>];
+  RD  [label="...", shape=plaintext, style=""];
+  R16 [label=<<b>Round 16</b><br/><font face="Courier New" point-size="9">des_round(state, K16)</font>>];
+  SW  [label=<<b>32-bit swap</b>  [2.9]<br/><font face="Courier New" point-size="9">des_swap_halves()</font>>];
+  IPI [label=<<b>Inverse initial permutation IP<sup>-1</sup></b>  [2.2]<br/><font face="Courier New" point-size="9">des_inverse_initial_permutation()</font>>];
+  C   [label="Ciphertext block C (64 bits)", fillcolor="white", color="#8a8984", style="rounded"];
+
+  K    [label="Key K (64 bits, 8 of them parity)", fillcolor="white", color="#8a8984", style="rounded"];
+  PC1  [label=<<b>Permuted choice 1</b>  [2.4.1]<br/><font point-size="9" color="#6b6a64">64 -&gt; 56 bits: C0 | D0</font><br/><font face="Courier New" point-size="9">des_permuted_choice_1()</font>>, fillcolor="#fdeee7", color="#c4501f"];
+  LS1  [label=<<b>Left circular shift</b>  [2.4.2]<br/><font point-size="9" color="#6b6a64">C, D rotated by des_shift_amount(1)</font><br/><font face="Courier New" point-size="9">des_left_circular_shift()</font>>, fillcolor="#fdeee7", color="#c4501f"];
+  PC21 [label=<<b>Permuted choice 2</b>  [2.4.3]<br/><font point-size="9" color="#6b6a64">56 -&gt; 48 bits</font><br/><font face="Courier New" point-size="9">des_permuted_choice_2()</font>>, fillcolor="#fdeee7", color="#c4501f"];
+  LS2  [label=<<b>Left circular shift</b>  [2.4.2]<br/><font face="Courier New" point-size="9">des_left_circular_shift()</font>>, fillcolor="#fdeee7", color="#c4501f"];
+  PC22 [label=<<b>Permuted choice 2</b>  [2.4.3]<br/><font face="Courier New" point-size="9">des_permuted_choice_2()</font>>, fillcolor="#fdeee7", color="#c4501f"];
+  KD   [label="...", shape=plaintext, style=""];
+  LS16 [label=<<b>Left circular shift</b>  [2.4.2]<br/><font face="Courier New" point-size="9">des_left_circular_shift()</font>>, fillcolor="#fdeee7", color="#c4501f"];
+  PC216[label=<<b>Permuted choice 2</b>  [2.4.3]<br/><font face="Courier New" point-size="9">des_permuted_choice_2()</font>>, fillcolor="#fdeee7", color="#c4501f"];
+
+  P -> IP;
+  IP -> R1 [label="  L0 | R0"];
+  R1 -> R2 [label="  L1 | R1"];
+  R2 -> RD; RD -> R16;
+  R16 -> SW [label="  L16 | R16"];
+  SW -> IPI [label="  R16 | L16"];
+  IPI -> C;
+
+  K -> PC1 -> LS1 -> LS2 -> KD -> LS16;
+  LS1 -> PC21; LS2 -> PC22; LS16 -> PC216;
+  PC21 -> R1 [label="K1 (48)", color="#c4501f", fontcolor="#c4501f", constraint=false];
+  PC22 -> R2 [label="K2", color="#c4501f", fontcolor="#c4501f", constraint=false];
+  PC216 -> R16 [label="K16", color="#c4501f", fontcolor="#c4501f", constraint=false];
+
+  { rank=same; P; K; }
+  { rank=same; R1; PC21; }
+  { rank=same; R2; PC22; }
+  { rank=same; R16; PC216; }
+}

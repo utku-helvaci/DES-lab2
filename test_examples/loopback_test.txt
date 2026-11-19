@@ -1,0 +1,4 @@
+PASS  CBC conversation: 5 + 5 messages arrived unchanged
+PASS  wrong key: receiver refuses to display the message
+PASS  ECB: 4 equal plaintext blocks -> 1 distinct ciphertext block; CBC -> 4 distinct blocks
+loopback tests passed

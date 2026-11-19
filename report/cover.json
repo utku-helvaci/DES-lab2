@@ -1,0 +1,18 @@
+{
+  "university": "Eastern Mediterranean University",
+  "department": "Department of Computer Engineering",
+  "program": "Software Engineering",
+  "course": "CMPE455/CMSE456 Security of Computer Systems and Networks",
+  "lab": "Lab 2",
+  "subject": "DES on Two Computers",
+  "team_members": [
+    "[Name Surname - Student ID]",
+    "[Name Surname - Student ID]"
+  ],
+  "lecturer": "[Lecturer name]",
+  "lab_assistant": "[Lab assistant name]",
+  "year": "2026",
+  "semester": "Fall 2026-2027",
+  "city": "[City]",
+  "country": "[Country]"
+}

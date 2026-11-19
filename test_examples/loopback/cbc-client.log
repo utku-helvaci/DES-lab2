@@ -1,0 +1,119 @@
+==============================================================================
+ CMPE455/CMSE456 Lab 2 - DES on two computers                 tcpClient
+==============================================================================
+ host name : nn
+ role      : client (Machine A): connects to the server, sends first
+ DES key   : 0f1571c947d9e859  (pre-shared; PC-1 keeps 56 of the 64 bits)
+ mode      : DES-CBC, PKCS#7 padding, new random IV for every message
+ exit word : :exit  (or end of input / Ctrl-D)
+------------------------------------------------------------------------------
+[+]Round keys generated: K1 = 7833c320da70 ... K16 = a6120b4d4c25
+[+]Client Socket is created.
+[+]Connected to Server 127.0.0.1:9555 from 127.0.0.1:60514.
+---- your turn: create -> encrypt -> send ----------------------------------
+Enter your message: Hello Machine B, this is Machine A.
+[CREATE ] message #1, 35 bytes: "Hello Machine B, this is Machine A."
+[ENCRYPT] DES-CBC   key = 0f1571c947d9e859   IV = e7c7d39092b4b1af
+          plaintext    35 B  48656c6c6f204d61 6368696e6520422c 2074686973206973 204d616368696e65
+                             20412e
+          + PKCS#7     40 B  48656c6c6f204d61 6368696e6520422c 2074686973206973 204d616368696e65
+                             20412e0505050505
+          ciphertext   40 B  eb51319425950e68 414ca7d63382e993 ac2d7b8374bc7fc6 864de7acfbf7452e
+                             f323ac5acd4929d4
+[SEND   ] 53 bytes -> 127.0.0.1:9555  (13-byte header + 40-byte ciphertext)
+---- peer's turn: receive -> decrypt -> display ----------------------------
+Waiting for a message from the Server ...
+[RECEIVE] 77 bytes <- 127.0.0.1:9555  (13-byte header + 64-byte ciphertext)
+          ciphertext   64 B  2c14438f3742750e 8cbad1612c7be384 ec87379c9a572cfd a1aaf8e9093e1f5a
+                             a55a9b96e2f52a22 f99b30db97372481 a7bf0931b0656a98 df4a8d061e21ac88
+[DECRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 6cf86524b6c97bd5
+          decrypted    64 B  4869204d61636869 6e65204121204d61 6368696e65204220 7265636569766564
+                             20616e6420646563 7279707465642079 6f7572206d657373 6167652e04040404
+          padding       4 B  removed -> 60-byte message
+[DISPLAY] Message from the Server: "Hi Machine A! Machine B received and decrypted your message."
+---- your turn: create -> encrypt -> send ----------------------------------
+Enter your message: Merhaba! Bu mesaj DES ile şifrelendi (ç ğ ı ö ş ü).
+[CREATE ] message #2, 58 bytes: "Merhaba! Bu mesaj DES ile şifrelendi (ç ğ ı ö ş ü)."
+[ENCRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 31ae6623a60c3937
+          plaintext    58 B  4d65726861626121 204275206d657361 6a2044455320696c 6520c59f69667265
+                             6c656e64692028c3 a720c49f20c4b120 c3b620c59f20c3bc 292e
+          + PKCS#7     64 B  4d65726861626121 204275206d657361 6a2044455320696c 6520c59f69667265
+                             6c656e64692028c3 a720c49f20c4b120 c3b620c59f20c3bc 292e060606060606
+          ciphertext   64 B  d91a360444203e62 793dcfa3dae92475 09a51ae83c4d55a9 23d5d594f0078ddb
+                             93896ccb2f9e2553 487748e1871e49e8 c3289953f930ae51 255b78d6abd1dd96
+[SEND   ] 77 bytes -> 127.0.0.1:9555  (13-byte header + 64-byte ciphertext)
+---- peer's turn: receive -> decrypt -> display ----------------------------
+Waiting for a message from the Server ...
+[RECEIVE] 69 bytes <- 127.0.0.1:9555  (13-byte header + 56-byte ciphertext)
+          ciphertext   56 B  47a809f89e920607 49dda00a0aed0ade 302961daf06107f2 f9872abd187ad21b
+                             8f25eb349bd9227f 9f2adc375ea050a2 db25b5ff02fd9a7a
+[DECRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 578717cd0074d2f7
+          decrypted    56 B  5465c59f656b6bc3 bc726c6572202d20 5554462d38206368 6172616374657273
+                             2073757276697665 6420656e63727970 74696f6e2e030303
+          padding       3 B  removed -> 53-byte message
+[DISPLAY] Message from the Server: "Teşekkürler - UTF-8 characters survived encryption."
+---- your turn: create -> encrypt -> send ----------------------------------
+Enter your message: 8 bytes!
+[CREATE ] message #3, 8 bytes: "8 bytes!"
+[ENCRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 80d81d9dca350e3a
+          plaintext     8 B  3820627974657321
+          + PKCS#7     16 B  3820627974657321 0808080808080808
+          ciphertext   16 B  3cdde91198453dc4 b2287f05d610522c
+[SEND   ] 29 bytes -> 127.0.0.1:9555  (13-byte header + 16-byte ciphertext)
+---- peer's turn: receive -> decrypt -> display ----------------------------
+Waiting for a message from the Server ...
+[RECEIVE] 77 bytes <- 127.0.0.1:9555  (13-byte header + 64-byte ciphertext)
+          ciphertext   64 B  f3a73c40337670ba ba44c830d454ed07 58ebdd3bfb7aad63 e3a82f5dd29c6d0a
+                             a8c290f41a86eee6 3afbd2a51217ad93 0c6046e9869224fa 7eea34b28333dd65
+[DECRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 1a0a399c5282cdfd
+          decrypted    64 B  416e20382d627974 65206d6573736167 652067657473206f 6e652066756c6c20
+                             626c6f636b206f66 2070616464696e67 2028303820782038 292e060606060606
+          padding       6 B  removed -> 58-byte message
+[DISPLAY] Message from the Server: "An 8-byte message gets one full block of padding (08 x 8)."
+---- your turn: create -> encrypt -> send ----------------------------------
+Enter your message: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+[CREATE ] message #4, 32 bytes: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+[ENCRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 6856b3414f4db88a
+          plaintext    32 B  4141414141414141 4141414141414141 4141414141414141 4141414141414141
+          + PKCS#7     40 B  4141414141414141 4141414141414141 4141414141414141 4141414141414141
+                             0808080808080808
+          ciphertext   40 B  ce9769ccc172cd9f 7a5f9a67db325f26 0b27de8b311f7b5b da53133c067181b3
+                             0101c5071ee8df36
+[SEND   ] 53 bytes -> 127.0.0.1:9555  (13-byte header + 40-byte ciphertext)
+---- peer's turn: receive -> decrypt -> display ----------------------------
+Waiting for a message from the Server ...
+[RECEIVE] 93 bytes <- 127.0.0.1:9555  (13-byte header + 80-byte ciphertext)
+          ciphertext   80 B  76a837245be8f8bd 33d2b5125876f5db aca67ce6ca12a025 946717f52d432c41
+                             fb09d69b21537235 36687356e2253c6c 52889b0098d8bee5 56962404ea00c1e5
+                             46cd9d659b1ec804 66a7403a990d0eb6
+[DECRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 88bb972ddc342d89
+          decrypted    80 B  466f757220657175 616c20706c61696e 7465787420626c6f 636b732c20627574
+                             2043424320676176 6520666f75722064 6966666572656e74 2063697068657274
+                             65787420626c6f63 6b732e0505050505
+          padding       5 B  removed -> 75-byte message
+[DISPLAY] Message from the Server: "Four equal plaintext blocks, but CBC gave four different ciphertext blocks."
+---- your turn: create -> encrypt -> send ----------------------------------
+Enter your message: Goodbye!
+[CREATE ] message #5, 8 bytes: "Goodbye!"
+[ENCRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 4b431f15cf2a127b
+          plaintext     8 B  476f6f6462796521
+          + PKCS#7     16 B  476f6f6462796521 0808080808080808
+          ciphertext   16 B  5afe9ef04ed47283 b0c299181e1cfb2f
+[SEND   ] 29 bytes -> 127.0.0.1:9555  (13-byte header + 16-byte ciphertext)
+---- peer's turn: receive -> decrypt -> display ----------------------------
+Waiting for a message from the Server ...
+[RECEIVE] 45 bytes <- 127.0.0.1:9555  (13-byte header + 32-byte ciphertext)
+          ciphertext   32 B  518eb74e4ab8b17e c5f5f59294b5beb8 a3342f1804159869 cf6222f31d435fd1
+[DECRYPT] DES-CBC   key = 0f1571c947d9e859   IV = 97a2de3c12f9f46d
+          decrypted    32 B  4279652120436c6f 73696e6720746865 2073657373696f6e 2e07070707070707
+          padding       7 B  removed -> 25-byte message
+[DISPLAY] Message from the Server: "Bye! Closing the session."
+---- your turn: create -> encrypt -> send ----------------------------------
+Enter your message: :exit   (end of input)
+[CREATE ] message #6, 5 bytes: ":exit"
+[ENCRYPT] DES-CBC   key = 0f1571c947d9e859   IV = f38ce1ca3e137e16
+          plaintext     5 B  3a65786974
+          + PKCS#7      8 B  3a65786974030303
+          ciphertext    8 B  100c01244de7eac7
+[SEND   ] 21 bytes -> 127.0.0.1:9555  (13-byte header + 8-byte ciphertext)
+[-]Disconnected from server.

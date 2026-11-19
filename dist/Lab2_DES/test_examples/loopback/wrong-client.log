@@ -1,0 +1,27 @@
+==============================================================================
+ CMPE455/CMSE456 Lab 2 - DES on two computers                 tcpClient
+==============================================================================
+ host name : nn
+ role      : client (Machine A): connects to the server, sends first
+ DES key   : 1f1571c947d9e859  (pre-shared; PC-1 keeps 56 of the 64 bits)
+ mode      : DES-ECB, PKCS#7 padding (no IV)
+ exit word : :exit  (or end of input / Ctrl-D)
+------------------------------------------------------------------------------
+[+]Round keys generated: K1 = 7833c324da70 ... K16 = a6120b4d4d25
+[+]Client Socket is created.
+[+]Connected to Server 127.0.0.1:9555 from 127.0.0.1:60528.
+---- your turn: create -> encrypt -> send ----------------------------------
+Enter your message: Hello Machine B, this is Machine A.
+[CREATE ] message #1, 35 bytes: "Hello Machine B, this is Machine A."
+[ENCRYPT] DES-ECB   key = 1f1571c947d9e859
+          plaintext    35 B  48656c6c6f204d61 6368696e6520422c 2074686973206973 204d616368696e65
+                             20412e
+          + PKCS#7     40 B  48656c6c6f204d61 6368696e6520422c 2074686973206973 204d616368696e65
+                             20412e0505050505
+          ciphertext   40 B  49bb1440b2f00edf 9bfef6354812dc7c ffc03743c9627817 81886c273828fe6a
+                             2a51bed7cf302071
+[SEND   ] 53 bytes -> 127.0.0.1:9555  (13-byte header + 40-byte ciphertext)
+---- peer's turn: receive -> decrypt -> display ----------------------------
+Waiting for a message from the Server ...
+[-]The Server closed the connection.
+[-]Disconnected from server.

@@ -1,0 +1,46 @@
+
+==> Building the image and starting the two machines
+ Container machine-a  Recreate
+ Container machine-a  Recreated
+ Container machine-b  Recreate
+ Container machine-b  Recreated
+ Container machine-a  Starting
+ Container machine-a  Started
+ Container machine-b  Starting
+ Container machine-b  Started
+
+==> Network settings of the two machines
+hostname: machine-a
+eth0@if50        UP             172.28.10.10/24 
+eth0@if50        UP             f6:28:68:3f:8a:18 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+default via 172.28.10.1 dev eth0 
+172.28.10.0/24 dev eth0 proto kernel scope link src 172.28.10.10 
+hostname: machine-b
+eth0@if51        UP             172.28.10.20/24 
+eth0@if51        UP             b6:06:40:ee:67:4a <BROADCAST,MULTICAST,UP,LOWER_UP> 
+default via 172.28.10.1 dev eth0 
+172.28.10.0/24 dev eth0 proto kernel scope link src 172.28.10.20 
+PING 172.28.10.20 (172.28.10.20) 56(84) bytes of data.
+64 bytes from 172.28.10.20: icmp_seq=1 ttl=64 time=0.060 ms
+64 bytes from 172.28.10.20: icmp_seq=2 ttl=64 time=0.039 ms
+64 bytes from 172.28.10.20: icmp_seq=3 ttl=64 time=0.041 ms
+
+--- 172.28.10.20 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2028ms
+rtt min/avg/max/mdev = 0.039/0.046/0.060/0.009 ms
+
+==> Starting the packet capture on the LAN bridge des-lan0
+
+==> machine-b: tcpServer   |   machine-a: tcpClient -s 172.28.10.20
+
+==> Stopping the capture
+19 packets captured -> test_examples/docker_run/des_lan_capture.txt
+
+==> Checks
+PASS  all 5 messages of machine-a were displayed unchanged on machine-b
+PASS  all 5 messages of machine-b were displayed unchanged on machine-a
+PASS  no plaintext message appears in the captured packets
+PASS  all 11 ciphertexts printed in the logs were found byte-for-byte in the capture
+
+Logs and capture: test_examples/docker_run/
+The machines are still running (docker compose down stops them).

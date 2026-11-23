@@ -4,6 +4,8 @@
 #   make test       unit tests of every DES step + known-answer tests
 #   make check      test + cross-check against pycryptodome/OpenSSL + loopback chat
 #   make demo       two Docker "machines" exchange encrypted messages
+#   make report / make reduced-report    the full or the reduced lab report
+#   make dist [REPORT=full|reduced|both] the submission zip
 #   make clean
 #
 # -O0 -g3 on purpose: every local variable stays visible in the debugger,
@@ -13,6 +15,8 @@ CC       ?= gcc
 CFLAGS   ?= -std=c11 -Wall -Wextra -Wpedantic -O0 -g3
 CPPFLAGS += -D_DEFAULT_SOURCE -Isrc
 BIN      := bin
+# report put into the zip by `make dist`: full, reduced or both
+REPORT   ?= full
 
 CORE    := src/des.c src/des_trace.c src/des_util.c src/des_modes.c
 CHAT    := src/net.c src/des_chat.c
@@ -21,7 +25,8 @@ HEADERS := $(wildcard src/*.h)
 PROGRAMS := $(BIN)/tcpServer $(BIN)/tcpClient $(BIN)/des_trace \
             $(BIN)/des_avalanche $(BIN)/des_test
 
-.PHONY: all test crosscheck loopback check demo examples screenshots report dist clean
+.PHONY: all test crosscheck loopback check demo examples screenshots report reduced-report \
+        dist clean
 
 all: $(PROGRAMS)
 
@@ -70,5 +75,9 @@ report: all
 	python3 report/make_figures.py
 	python3 report/build_report.py
 
+reduced-report: all
+	python3 report/make_figures.py
+	python3 report/build_reduced_report.py
+
 dist:
-	./tools/package.sh
+	REPORT=$(REPORT) ./tools/package.sh

@@ -562,14 +562,16 @@ class Report:
             p.paragraph_format.space_after = Pt(3)
         return p
 
-    def figure(self, name, width, caption, label=None):
+    def figure(self, name, width, caption=None, label=None):
+        """The image, centred; caption=None leaves out the "Figure N." line."""
         p = self.doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.keep_with_next = True
+        p.paragraph_format.keep_with_next = caption is not None
         p.paragraph_format.space_before = Pt(4)
-        p.paragraph_format.space_after = Pt(0)
+        p.paragraph_format.space_after = Pt(0 if caption is not None else 10)
         p.add_run().add_picture(os.path.join(FIG, name), width=Cm(width))
-        self.caption("Figure", caption, label)
+        if caption is not None:
+            self.caption("Figure", caption, label)
 
     def table(self, header, rows, widths, caption=None, label=None, mono=(), size=8,
               center=(), bold_col0=False, fills=None, keep_together=None):

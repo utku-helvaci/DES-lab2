@@ -90,8 +90,14 @@ make screenshots   # report/figures/ (needs Xvfb, xterm, xdotool, ImageMagick; r
 make report        # both reports at once: report/DES_Lab2_Report.* and report/Reduced_Report.*
                    # (python-docx, graphviz, matplotlib, LibreOffice)
 make full-report   # only the full report;  make reduced-report: only the reduced one
-make dist          # dist/Lab2_DES.zip with both reports (REPORT=full or REPORT=reduced: one)
+make dist          # dist/Lab2_DES_Full_Report.zip and dist/Lab2_DES_Reduced_Report.zip
+                   # (REPORT=full or REPORT=reduced: only one of them)
 ```
+
+The reduced zip has only the reduced report, `src/`, `bin/` (without `des_test`),
+`docker/` and the project files: no `debug/`, `starter_original/`, `test_examples/`,
+`tests/` or `tools/`. Without `tests/`, `make` skips `bin/des_test` and the Docker build
+skips the unit tests.
 
 How every screenshot and figure was made (all commands): `report/build/fig/SCREENSHOTS.md`.
 Cover-page fields are in `report/cover.json`. The report script starts LibreOffice

@@ -6,7 +6,8 @@
 #   make demo       two Docker "machines" exchange encrypted messages
 #   make report     BOTH reports (full + reduced), built in parallel
 #   make full-report / make reduced-report    only one of them
-#   make dist [REPORT=both|full|reduced]       the submission zip (default: both)
+#   make dist       the two submission zips, dist/Lab2_DES_Full_Report.zip and
+#                   dist/Lab2_DES_Reduced_Report.zip (REPORT=full or REPORT=reduced: one)
 #   make clean
 #
 # -O0 -g3 on purpose: every local variable stays visible in the debugger,
@@ -16,7 +17,7 @@ CC       ?= gcc
 CFLAGS   ?= -std=c11 -Wall -Wextra -Wpedantic -O0 -g3
 CPPFLAGS += -D_DEFAULT_SOURCE -Isrc
 BIN      := bin
-# report(s) put into the zip by `make dist`: both, full or reduced
+# zip(s) made by `make dist`: both, full or reduced
 REPORT   ?= both
 
 CORE    := src/des.c src/des_trace.c src/des_util.c src/des_modes.c
@@ -24,7 +25,9 @@ CHAT    := src/net.c src/des_chat.c
 HEADERS := $(wildcard src/*.h)
 
 PROGRAMS := $(BIN)/tcpServer $(BIN)/tcpClient $(BIN)/des_trace \
-            $(BIN)/des_avalanche $(BIN)/des_test
+            $(BIN)/des_avalanche
+# the zip of the reduced report has no tests/ folder: then there is no bin/des_test
+PROGRAMS += $(if $(wildcard tests/test_des.c),$(BIN)/des_test)
 
 .PHONY: all test crosscheck loopback check demo examples screenshots figures report \
         full-report reduced-report dist clean

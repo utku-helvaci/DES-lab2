@@ -4,9 +4,10 @@ report/build_reduced_report.py - builds the "Reduced Report".
 
 A shorter version of the Lab 2 report, written in the plainer style of a sample
 report the team preferred: one short numbered section per lab item with a few
-sentences, the code and one screenshot. Everything the lab sheet asks for is
-still there; report/REDUCED_REPORT_CHANGES.md lists what was removed or
-shortened compared with the full report (report/build_report.py).
+sentences and a screenshot. Like the sample, the figures have no captions, and
+the code is only in the appendix, not in the sections of the steps. Everything
+the lab sheet asks for is still there; report/REDUCED_REPORT_CHANGES.md lists
+what was removed or shortened compared with the full report (report/build_report.py).
 
     make report            (both reports)   or   make reduced-report   (only this one)
 
@@ -27,10 +28,6 @@ DOCX = os.path.join(HERE, "Reduced_Report.docx")
 PDF = os.path.join(HERE, "Reduced_Report.pdf")
 LOGO = os.path.join(HERE, "assets", "emu_logo.png")
 SHOT = 13.5          # width of a debugger screenshot, cm
-
-
-def code(R, *functions, path="src/des.c"):
-    R.code("\n\n".join(full.c_function(path, f) for f in functions))
 
 
 def cover_page(R):
@@ -107,8 +104,8 @@ def build(R):
     R.para("Every DES step is a small function in `src/des.c` ({tab:functions}). It takes its "
            "input as parameters and returns its output, so both can be watched in the debugger. "
            "All six permutations (IP, IP^{-1}, E, P, PC-1, PC-2) use the same helper, "
-           "`des_permute()`, each with its own table from the DES standard [1].")
-    code(R, "des_permute")
+           "`des_permute()`, each with its own table from the DES standard [1]. The source "
+           "code of all the functions is in the appendix.")
     R.table(["Lab item", "DES step", "C function", "Bits in -> out"], [
         ["2.1", "Initial permutation", "`des_initial_permutation(block)`", "64 -> 64"],
         ["2.2", "Inverse initial permutation", "`des_inverse_initial_permutation(block)`", "64 -> 64"],
@@ -136,75 +133,63 @@ def build(R):
            "input bit 58, output bit 2 is input bit 50, and so on. The result is split into "
            "the left half L0 = `5a005a00` and the right half R0 = `3cf03c0f`, the first row "
            "of the handout's Table 4.2.")
-    code(R, "des_initial_permutation")
-    R.figure("dbg_05_ip.png", SHOT, "`des_initial_permutation()`: block 02468aceeca86420 "
-             "becomes 5a005a003cf03c0f.")
+    R.figure("dbg_05_ip.png", SHOT)
 
     R.heading("2.2  Inverse initial permutation", 2)
     R.para("The inverse initial permutation is the last step and undoes the initial "
            "permutation. Its input is R16 | L16 = `25896490 75e8fd8f`, its output the "
            "ciphertext `da02ce3a89ecac3b`.")
-    code(R, "des_inverse_initial_permutation")
-    R.figure("dbg_14_inverse_ip.png", SHOT, "`des_inverse_initial_permutation()`: "
-             "2589649075e8fd8f becomes the ciphertext da02ce3a89ecac3b.")
+    R.figure("dbg_14_inverse_ip.png", SHOT)
 
     R.heading("2.3  Expansion/permutation", 2)
     R.para("The right half has 32 bits but the round key has 48, so E expands the half to 48 "
            "bits: the two edge bits of every 4-bit group are copied into the neighbouring "
            "groups. In round 1, R0 = `3cf03c0f` becomes `9f97a01f805e`.")
-    code(R, "des_expansion_permutation")
-    R.figure("dbg_06_expansion.png", SHOT, "`des_expansion_permutation()` in round 1.")
+    R.figure("dbg_06_expansion.png", SHOT)
 
     R.heading("2.4  Round key generation", 2)
     R.para("The 16 round keys are made from the key in three steps. **Permuted choice 1** "
            "removes the 8 parity bits and splits the other 56 bits into two 28-bit halves, "
            "C0 = `68fc44a` and D0 = `1113e96`. Before every round both halves are **rotated "
            "left** by one position (rounds 1, 2, 9 and 16) or by two positions (all other "
-           "rounds). **Permuted choice 2** then picks 48 of the 56 bits as the round key: "
-           "K1 = `7833c320da70`, which is `1e030f03080d2930` when written in 6-bit groups as in "
-           "the handout.")
-    code(R, "des_left_circular_shift", "des_generate_round_keys")
-    R.figure("dbg_01_pc1.png", 12.5, "Permuted choice 1: the key becomes C0 | D0.")
-    R.figure("dbg_02_shift.png", 12.5, "Left circular shift in round 1: C0 = 68fc44a, rotated "
-             "by 1, gives C1 = d1f8894.")
-    R.figure("dbg_03_pc2.png", 12.5, "Permuted choice 2 in round 1: C1 | D1 becomes "
-             "K1 = 7833c320da70.")
+           "rounds); in round 1, C0 becomes C1 = `d1f8894`. **Permuted choice 2** then picks "
+           "48 of the 56 bits as the round key: K1 = `7833c320da70`, which is "
+           "`1e030f03080d2930` when written in 6-bit groups as in the handout. The three "
+           "screenshots show these three steps in this order.")
+    R.figure("dbg_01_pc1.png", 12.5)
+    R.figure("dbg_02_shift.png", 12.5)
+    R.figure("dbg_03_pc2.png", 12.5)
 
     R.heading("2.5  XOR with round key", 2)
     R.para("The expanded right half is XORed with the round key of the round. In round 1: "
            "`9f97a01f805e` XOR `7833c320da70` = `e7a4633f5a2e`.")
-    code(R, "des_xor_round_key")
-    R.figure("dbg_07_xor_round_key.png", SHOT, "`des_xor_round_key()` in round 1.")
+    R.figure("dbg_07_xor_round_key.png", SHOT)
 
     R.heading("2.6  S-boxes", 2)
     R.para("The S-boxes turn the 48 bits back into 32. The 48 bits are cut into eight 6-bit "
            "groups, one for each S-box. The two outer bits of a group select the row and the "
            "four inner bits the column of the S-box table; the number found there is the 4-bit "
            "output. In round 1, S1 receives `111001`: row 3, column 12, output 10 (`1010`). The "
-           "screenshot shows the loop stopping for S1, S2 and S3.")
-    code(R, "des_sbox_lookup", "des_sbox_substitution")
-    R.figure("dbg_08_sbox_loop.png", SHOT, "The S-box loop in step mode: box number, 6-bit "
-             "input, 4-bit output and the 32-bit result so far.")
+           "screenshot shows the loop in step mode stopping for S1, S2 and S3, with the box "
+           "number, the 6-bit input, the 4-bit output and the 32-bit result so far.")
+    R.figure("dbg_08_sbox_loop.png", SHOT)
 
     R.heading("2.7  Permutation P after the S-boxes", 2)
     R.para("P reorders the 32 output bits of the S-boxes. Its result is the round function f: "
            "in round 1, `a32f11c2` becomes f = `e0d27245`.")
-    code(R, "des_permutation_p", "des_feistel")
-    R.figure("dbg_10_permutation_p.png", SHOT, "`des_permutation_p()` in round 1.")
+    R.figure("dbg_10_permutation_p.png", SHOT)
 
     R.heading("2.8  XOR with the left half", 2)
     R.para("The output of f is XORed with the left half, and the result becomes the new right "
            "half. In round 1: `5a005a00` XOR `e0d27245` = `bad22845`, which is R1 in Table 4.2.")
-    code(R, "des_xor_left_half")
-    R.figure("dbg_11_xor_left_half.png", SHOT, "`des_xor_left_half()` in round 1.")
+    R.figure("dbg_11_xor_left_half.png", SHOT)
 
     R.heading("2.9  Swap of the halves", 2)
     R.para("At the end of every round the two halves change places, so L1 = R0 = `3cf03c0f` "
            "and R1 = `bad22845`. After round 16 the halves are swapped once more, before "
            "IP^{-1}. The screenshot shows the round function in step mode: after one `next` "
            "the watched variable `after_swap` holds `3cf03c0fbad22845`.")
-    code(R, "des_swap_halves", "des_round")
-    R.figure("dbg_13_round_step_mode.png", SHOT, "`des_round()` in step mode, round 1.")
+    R.figure("dbg_13_round_step_mode.png", SHOT)
 
     R.heading("2.10  Create, encrypt and send a message", 2)
     R.para("`tcpServer` (Machine B) and `tcpClient` (Machine A) are the starter programs with "
@@ -223,10 +208,9 @@ def build(R):
            "together with their length, because ciphertext can contain zero bytes and TCP can "
            "split a message. Whole lines are read with `fgets()` instead of single words with "
            "`scanf`.")
-    code(R, "chat_send_turn", path="src/des_chat.c")
-    R.figure("net_07_machine-a_receive_decrypt_display.png", 13.0, "Machine A creates, "
-             "encrypts and sends its message, then receives, decrypts and displays the answer "
-             "of Machine B.")
+    R.para("The screenshot shows Machine A: it creates, encrypts and sends its message, then "
+           "receives, decrypts and displays the answer of Machine B.")
+    R.figure("net_07_machine-a_receive_decrypt_display.png", 13.0)
 
     R.heading("2.11  Receive, decrypt and display a message", 2)
     R.para("On the other turn a machine **receives** the frame (`receive_message()`), "
@@ -234,24 +218,22 @@ def build(R):
            "text (`display_message()`). Typing `:exit` ends the conversation on both machines. "
            "If the two machines use different keys, the padding check fails and nothing is "
            "displayed.")
-    code(R, "chat_receive_turn", path="src/des_chat.c")
-    R.figure("net_06_machine-b_create_encrypt_send.png", 13.0, "Machine B receives, decrypts "
-             "and displays the message of Machine A, then creates, encrypts and sends its "
-             "answer. The Turkish letters arrive unchanged.")
-    R.para("The capture below was taken on the virtual network between the machines while "
-           "these two messages were sent. It contains only the frame header, the IV and the "
-           "ciphertext; the text of the messages does not appear anywhere.")
-    R.figure("net_08_packet_capture.png", 16.5, "The two messages as captured by tcpdump on "
-             "the network between the machines.")
+    R.para("The screenshot shows Machine B: it receives, decrypts and displays the message of "
+           "Machine A, then creates, encrypts and sends its answer. The Turkish letters arrive "
+           "unchanged.")
+    R.figure("net_06_machine-b_create_encrypt_send.png", 13.0)
+    R.para("The tcpdump capture below was taken on the virtual network between the machines "
+           "while these two messages were sent. It contains only the frame header, the IV and "
+           "the ciphertext; the text of the messages does not appear anywhere.")
+    R.figure("net_08_packet_capture.png", 16.5)
 
     # ------------------------------------------------------------------ 3
     R.heading("3  Results", 1, new_page=True)
     R.heading("3.1  Input, method, output and DES step", 2)
     R.para("{tab:steps} is the table the lecturer asked for. It shows the first call of every "
            "step: the input to the method, the method name, the method output and the DES step. "
-           "`bin/des_trace` prints the same table for all 148 calls of one encryption "
-           "(`test_examples/trace_textbook_encrypt.csv`). In the table, `^` means XOR and `|` "
-           "joins the two halves.")
+           "`bin/des_trace` prints the same table for all 148 calls of one encryption. In the "
+           "table, `^` means XOR and `|` joins the two halves.")
     first = lambda **kw: full.pick(tr, **kw)[0]
     rows = [first(method="des_permuted_choice_1"),
             first(method="des_left_circular_shift", step="of C", rounds=(1,)),
@@ -302,7 +284,7 @@ def build(R):
            "network interface, IP address and processes, and both are connected to the same "
            "virtual Ethernet network `des_lan` [6]. The settings are in `docker-compose.yml`; "
            "the DES key is given to both machines as the environment variable `DES_KEY`.")
-    R.figure("network.png", 15.5, "The two machines on the virtual network.")
+    R.figure("network.png", 15.5)
     R.table(["", "machine-a", "machine-b"], [
         ["Role", "Machine A, sends first", "Machine B, receives first"],
         ["Host name", "machine-a", "machine-b"],
@@ -315,8 +297,9 @@ def build(R):
            "docker exec -it machine-a tcpClient -s 172.28.10.20   # terminal 2: Machine A\n"
            "docker compose down                                   # stop both machines",
            size=8)
-    R.figure("net_settings_both.png", 12.5, "machine-a (top) and machine-b (bottom): host "
-             "name, IP address, route and a ping to the other machine.")
+    R.para("The screenshot shows the host name, IP address and route of machine-a (top) and "
+           "machine-b (bottom), and a ping from each machine to the other.")
+    R.figure("net_settings_both.png", 12.5)
     R.para("**Real computers or virtual machines.** The programs do not depend on Docker. On "
            "two computers in the same network - or two virtual machines with a bridged network "
            "adapter - start `./bin/tcpServer -k KEY` on Machine B, allow TCP port 9000 in its "
@@ -328,13 +311,14 @@ def build(R):
     R.heading("5  Testing and the choices we made", 1)
     R.para("**Tests.**", after=2, keep=True)
     R.bullets([
-        "Unit tests (`make test`): every step function and the whole cipher are compared with "
-        "values from the handout, from Grabbe's worked example [3] and from FIPS 81; all "
-        "25 080 checks pass.",
-        "Cross-check (`make crosscheck`): 300 random keys and blocks give the same results as "
-        "pycryptodome and OpenSSL (700 comparisons, no difference).",
-        "Network tests (`make loopback`, `make demo`): every message arrives unchanged on the "
-        "other machine, a wrong key is rejected, and the packet capture contains no plaintext.",
+        "Unit tests: every step function and the whole cipher are compared with values from "
+        "the handout, from Grabbe's worked example [3] and from FIPS 81; all 25 080 checks "
+        "pass.",
+        "Cross-check: 300 random keys and blocks give the same results as pycryptodome and "
+        "OpenSSL (700 comparisons, no difference).",
+        "Network tests, on one computer and on the two Docker machines: every message arrives "
+        "unchanged on the other machine, a wrong key is rejected, and the packet capture "
+        "contains no plaintext.",
         "Avalanche effect: changing bit 4 of the plaintext changes 32 of the 64 ciphertext "
         "bits, exactly as in Table 4.3 of the handout; changing bit 4 of the key changes 30.",
     ])
@@ -378,8 +362,9 @@ def build(R):
 
     # ------------------------------------------------------------------ appendix
     R.heading("Appendix  Source code", 1, new_page=True)
-    R.para("The C source code of the DES functions and the two programs. The tests, the Docker "
-           "files and the helper tools are in the submitted archive.")
+    R.para("The C source code of the DES functions, the two programs and the step-table tool "
+           "`des_trace`. The Makefile, the Docker files and `src/des_avalanche.c` are in the "
+           "submitted archive.")
     sources = ["src/des.h", "src/des.c", "src/des_trace.h", "src/des_trace.c",
                "src/des_modes.h", "src/des_modes.c", "src/des_util.h", "src/des_util.c",
                "src/net.h", "src/net.c", "src/des_chat.h", "src/des_chat.c",

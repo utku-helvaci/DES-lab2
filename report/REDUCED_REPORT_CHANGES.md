@@ -8,9 +8,10 @@ for.
 
 |  | Full report | Reduced Report |
 |---|---|---|
-| Pages | 86 (41 body + 45 appendices) | 46 (20 body + 26 appendix) |
+| Pages | 86 (41 body + 45 appendices) | 42 (16 body + 26 appendix) |
 | Words of running text | about 5 200 | about 2 000 |
-| Figures | 28 | 16 |
+| Figures | 28, with captions | 16, without captions |
+| Code boxes in the body | one or more for every step | none (the code is in the appendix) |
 | Tables | 23 | 4 |
 | Appendices | A source code (24 files), B full step table (148 rows), C archive layout | source code (15 C files) |
 
@@ -34,8 +35,15 @@ or appendix.
   sheet's tasks (2.1 initial permutation ... 2.9 swap, 2.10 create/encrypt/send,
   2.11 receive/decrypt/display), like the sample's numbered list.
 - **Short sections.** Each step has one to three plain sentences: what the step
-  does, then the values of the example. After that come the function and one
-  screenshot.
+  does, then the values of the example. After that comes the screenshot.
+- **No figure captions.** Like the sample, no image has a "Figure N." line. The
+  sentence before a screenshot says what it shows, and the few facts that were
+  only in a caption (for example C1 = `d1f8894` in 2.4, or which machine is at
+  the top of the settings screenshot) moved into the text. Tables keep their
+  captions.
+- **No code boxes in Sections 2 - 2.11.** As in the sample, the code is seen in
+  the screenshots: the source pane of every debugger screenshot shows the step
+  function. The complete code is in the appendix.
 - **Plain language.** The sentences are shorter, there is less formal wording,
   and there are few "see Table 17"-style cross-references.
 - **Cover.** The university logo and centred lines replace the field table. The
@@ -68,20 +76,21 @@ These are lab-sheet requirements, or things the lecturer asked for:
 | 1 Problem definition: 3 paragraphs, requirement list R1 - R6, note on Docker | 2 short paragraphs |
 | 2.1 DES in brief, with 2 diagrams | **Removed.** Each step section explains its own step |
 | 2.2 Environment table and project-file table (17 rows) | **Removed** (see README.md) |
-| 2.3 Design: 3 paragraphs, `des_permute` code, 17-row function table, paragraph on tracing | 1 paragraph, `des_permute` code, 13-row function table |
-| 2.4.1 - 2.4.9: text, constant tables (IP, E, S1), code, step table for rounds 1, 2 and 16, and 1 - 4 screenshots for each step (15 debugger screenshots) | 2.1 - 2.9: 1 - 3 sentences, the function, 1 screenshot (3 for round keys): 11 debugger screenshots |
+| 2.3 Design: 3 paragraphs, `des_permute` code, 17-row function table, paragraph on tracing | 1 paragraph and a 13-row function table; no code |
+| 2.4.1 - 2.4.9: text, constant tables (IP, E, S1), code, step table for rounds 1, 2 and 16, and 1 - 4 screenshots for each step (15 debugger screenshots) | 2.1 - 2.9: 1 - 3 sentences and 1 screenshot (3 for round keys): 11 debugger screenshots, no code |
 | Round-key comparison table (16 rows) | Merged into the result table of 3.2 |
 | 9 separate step tables (rounds 1, 2, 16, S-box look-ups) | **One** step table: the first call of every step (13 rows), Section 3.1 |
 | 2.5 Table 4.2 comparison and a 16-row decryption table | 3.2: the comparison table; decryption in one sentence |
 | 2.6 Values observed by the debugger (GDB breakpoint table) | **Removed** (the screenshots show the same values; the table is in `test_examples/gdb_watch_steps.txt`) |
 | 2.7 Padding and modes: code of 2 functions, ECB/CBC table | **Removed**; one sentence in 2.10 and one bullet in Section 5 |
-| 2.8 Distributed application: starter-code problem table (9 rows), frame table, code of 5 functions, 6 screenshots, packet-capture paragraph | 2.10 / 2.11: 3 bullets, 4 sentences about the starter code, 2 short functions, 2 screenshots that each show all six stages on one machine, the packet capture |
+| 2.8 Distributed application: starter-code problem table (9 rows), frame table, code of 5 functions, 6 screenshots, packet-capture paragraph | 2.10 / 2.11: 3 bullets, 4 sentences about the starter code, 2 screenshots that each show all six stages on one machine, the packet capture |
 | 2.9 Settings: text, diagram, 8-row table, `docker-compose.yml` excerpt, 2 screenshots, commands, 9-row options table, 4 numbered steps for real computers and VMs, Wi-Fi note | Section 4: 1 paragraph, diagram, 4-row table, commands, 1 combined screenshot, 1 paragraph for real computers and VMs |
 | 2.10 Testing: 4 subsections with full output listings, avalanche table (18 rows), chart, note on the handout | Section 5: 4 bullets with the results |
 | 2.11 Comparison of choices: 6-row table and 5 paragraphs | Section 5: 3 bullets and a 2-sentence opinion |
 | 3 Conclusion: paragraph, 4 bullets, paragraph | 1 paragraph |
 | 4 References: 14 | 6 |
-| Appendix A: 24 files (sources, tests, Python and shell scripts, Makefile, Docker files) | 15 C files of `src/` (the tests, scripts, Docker files and `des_avalanche.c` are only in the archive) |
+| Appendix A: 24 files (sources, tests, Python and shell scripts, Makefile, Docker files) | 15 C files of `src/`, the only code in the report (the Makefile, the Docker files and `des_avalanche.c` are in its zip; the tests and scripts only in the full zip) |
+| A "Figure N." caption under every figure | **No captions**; tables keep theirs |
 | Appendix B: 148-row step table | **Removed** (`test_examples/trace_textbook_encrypt.csv`) |
 | Appendix C: archive layout | **Removed** (see README.md) |
 
@@ -102,11 +111,27 @@ These are lab-sheet requirements, or things the lecturer asked for:
 ## What did not change
 
 The programs, the tests, the executables and the test examples are the same,
-and the full report is still built next to the reduced one. To choose which
-report goes into the submission archive:
+and the full report is still built next to the reduced one.
+
+## The two submission zips
+
+Each report has its own zip; both unpack into a folder `Lab2_DES/`:
 
 ```sh
-make dist                  # both reports (default)
-make dist REPORT=full      # only the full report
-make dist REPORT=reduced   # only the Reduced Report
+make dist                  # both zips
+make dist REPORT=full      # only dist/Lab2_DES_Full_Report.zip
+make dist REPORT=reduced   # only dist/Lab2_DES_Reduced_Report.zip
 ```
+
+|  | Full report zip | Reduced report zip |
+|---|---|---|
+| Report (pdf + docx) | `DES_Lab2_Report` | `Reduced_Report` |
+| `src/`, `docker/`, `docker-compose.yml`, `Makefile`, `README.md`, `.vscode/`, report scripts and screenshots | yes | yes |
+| `bin/` | 5 executables | 4 (no `des_test`) |
+| `tests/`, `debug/`, `tools/`, `test_examples/`, `starter_original/` | yes | **no** |
+
+Without `tests/`, `make` skips `bin/des_test` and the Docker build skips the
+unit tests, so the programs and both machines still build from the reduced zip.
+`make test`, `make check`, `make demo`, `make examples`, `make screenshots`,
+`make report` and `make dist` need the full zip. The README of each zip names
+only its own report; the reduced one also says what it leaves out.

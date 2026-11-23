@@ -9,11 +9,13 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends gcc libc6-dev make \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/des-lab
-COPY Makefile ./
-COPY src ./src
-COPY tests ./tests
-RUN make bin/tcpServer bin/tcpClient bin/des_trace bin/des_avalanche bin/des_test \
- && ./bin/des_test
+# Makefile, src/, tests/ and the two message scripts of test_examples/: .dockerignore
+# lets nothing else in. The zip of the reduced report has no tests/ and no
+# test_examples/; make then leaves out bin/des_test, and there is nothing to run.
+COPY . ./
+RUN make \
+ && if [ -x bin/des_test ]; then ./bin/des_test; fi \
+ && mkdir -p test_examples
 
 FROM debian:bookworm-slim
 RUN apt-get update \
@@ -21,7 +23,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/des-lab
 COPY --from=build /opt/des-lab/bin/ ./bin/
-COPY src ./src
-COPY test_examples/messages_machine_a.txt test_examples/messages_machine_b.txt ./test_examples/
+COPY --from=build /opt/des-lab/src/ ./src/
+COPY --from=build /opt/des-lab/test_examples/ ./test_examples/
 ENV PATH="/opt/des-lab/bin:${PATH}"
 CMD ["sleep", "infinity"]

@@ -1,5 +1,0 @@
-Hello Machine B, this is Machine A.
-Merhaba! Bu mesaj DES ile şifrelendi (ç ğ ı ö ş ü).
-8 bytes!
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-Goodbye!

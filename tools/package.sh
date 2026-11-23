@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # tools/package.sh - builds the submission archives; both unpack into one folder <name>/:
 #
-#   dist/<name>_Full_Report.zip     the full report (pdf + docx), all sources and project
-#                                   files, the executables, the test examples and the
-#                                   unmodified starter code for comparison
-#   dist/<name>_Reduced_Report.zip  the reduced report, the sources, the executables, the
-#                                   Docker files and the report scripts; no debug/,
-#                                   starter_original/, test_examples/, tests/ or tools/
-#                                   folder, and no bin/des_test
+#   dist/<name>_Full_Report.zip     the full report (pdf + docx) and the scripts that build
+#                                   it, all sources and project files, the executables, the
+#                                   test examples and the unmodified starter code
+#   dist/<name>_Reduced_Report.zip  the reduced report (pdf + docx only), the sources, the
+#                                   executables and the Docker files; no debug/,
+#                                   starter_original/, test_examples/, tests/ or tools/, no
+#                                   report scripts, screenshots or bin/des_test. Its README
+#                                   has only the title and the sections "Run on two machines
+#                                   (Docker)", "DES step tables" and "Debugging".
 #
 # The executables are taken from the Docker image, where they were compiled on
 # Debian 12 (glibc 2.36), so they run on most current Linux distributions and
@@ -34,13 +36,29 @@ container=$(docker create des-lab2:latest)
 docker cp "$container:/opt/des-lab/bin" "$work/bin"
 docker rm "$container" > /dev/null
 
-# README.md of an archive: its first paragraph names only the report in that archive,
-# followed by the note $2 (\n for a line break)
-readme() {
-    awk -v first="The report is \`report/$1.pdf\` (editable: \`.docx\`).$2" '
-        /^The report is / { print first; skip = 1; next }
-        skip && /^$/      { skip = 0 }
-        !skip' README.md
+# README.md of the full archive: the first paragraph names only the full report
+readme_full() {
+    awk '/^The report is / { print "The report is `report/DES_Lab2_Report.pdf` (editable: `.docx`)."
+                             skip = 1; next }
+         skip && /^$/      { skip = 0 }
+         !skip' README.md |
+        sed 's#^| `Lab2_DES/` | the course starter code (unchanged) |#| `starter_original/` | the course starter code (unchanged) |#'
+}
+
+# README.md of the reduced archive: the title and three sections, without the lines that
+# need a folder it leaves out (make demo, the GDB script in debug/)
+readme_reduced() {
+    awk -v sections="Run on two machines (Docker)|DES step tables|Debugging" '
+        BEGIN    { n = split(sections, s, "|"); for (i = 1; i <= n; i++) want["## " s[i]] }
+        NR == 1  { print; blank = 1; next }                      # the title
+        /^## /   { keep = ($0 in want); if (keep) seen[$0] }
+        !keep    { next }
+        /^$/     { blank++; next }                               # no blank line at the end
+                 { for (; blank > 0; blank--) print ""; print }
+        END      { for (h in want) if (!(h in seen)) {
+                       print "README.md has no section \"" h "\"" > "/dev/stderr"; exit 1 } }
+    ' README.md |
+        sed -e '/^make demo /d' -e '/debug\/des_watch\.py/{N;d}'
 }
 
 package() {    # $1 = full or reduced
@@ -54,31 +72,19 @@ package() {    # $1 = full or reduced
     mkdir -p "$stage/report"
     cp -r "$work/bin" src docker .vscode "$stage/"
     cp Makefile docker-compose.yml .dockerignore "$stage/"
-    cp "report/$report.pdf" "report/$report.docx" report/build_report.py \
-       report/build_reduced_report.py report/make_figures.py report/cover.json "$stage/report/"
-    cp -r report/assets report/figures "$stage/report/"
+    cp "report/$report.pdf" "report/$report.docx" "$stage/report/"
 
     if [ "$1" = full ]; then
+        cp report/build_report.py report/build_reduced_report.py report/make_figures.py \
+           report/cover.json "$stage/report/"
+        cp -r report/assets report/figures "$stage/report/"
         cp -r tests debug tools test_examples "$stage/"
         mkdir "$stage/starter_original"
         cp Lab2_DES/DES_tcp_server_client_program/*.c "$stage/starter_original/"
-        readme "$report" "" | sed 's#^| `Lab2_DES/` | the course starter code (unchanged) |#| `starter_original/` | the course starter code (unchanged) |#' \
-            > "$stage/README.md"
+        readme_full > "$stage/README.md"
     else
         rm -f "$stage/bin/des_test"
-        # README without what needs the missing folders: their rows of the layout table,
-        # bin/des_test, make test/check/demo, the GDB script and "Regenerating the evidence"
-        readme "$report" "\n\nThis archive contains the report, the source code, the \
-executables and the Docker files. The unit tests, the debugger script, the helper tools, \
-the test examples and the original starter code are not included, so \`make test\`, \
-\`make check\`, \`make demo\`, \`make examples\`, \`make screenshots\`, \`make report\` \
-and \`make dist\` do not work here." |
-            sed -e '\#^| `\(tests\|debug\|tools\|test_examples\|Lab2_DES\)/#d' \
-                -e 's/^## Build and test (Linux)$/## Build (Linux)/' \
-                -e 's# bin/des_test##' \
-                -e '/^make \(test\|check\|demo\) /d' \
-                -e '/debug\/des_watch\.py/{N;d}' \
-                -e '/^## Regenerating the evidence/,$d' > "$stage/README.md"
+        readme_reduced > "$stage/README.md"
     fi
     find "$stage" -name '__pycache__' -prune -exec rm -rf {} +
 

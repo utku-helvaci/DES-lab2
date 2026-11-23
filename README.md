@@ -94,10 +94,12 @@ make dist          # dist/Lab2_DES_Full_Report.zip and dist/Lab2_DES_Reduced_Rep
                    # (REPORT=full or REPORT=reduced: only one of them)
 ```
 
-The reduced zip has only the reduced report, `src/`, `bin/` (without `des_test`),
-`docker/` and the project files: no `debug/`, `starter_original/`, `test_examples/`,
-`tests/` or `tools/`. Without `tests/`, `make` skips `bin/des_test` and the Docker build
-skips the unit tests.
+The reduced zip has only the reduced report (pdf + docx), `src/`, `bin/` (without
+`des_test`), `docker/` and the project files: no `debug/`, `starter_original/`,
+`test_examples/`, `tests/`, `tools/`, report scripts or screenshots. Its README has only
+the title and the sections *Run on two machines (Docker)*, *DES step tables* and
+*Debugging*. Without `tests/`, `make` skips `bin/des_test` and the Docker build skips
+the unit tests.
 
 How every screenshot and figure was made (all commands): `report/build/fig/SCREENSHOTS.md`.
 Cover-page fields are in `report/cover.json`. The report script starts LibreOffice

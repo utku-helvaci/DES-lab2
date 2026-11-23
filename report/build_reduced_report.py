@@ -96,7 +96,7 @@ def build(R):
            "the same as the text typed on the other computer. Every DES step has to be checked "
            "in the debugger. As the lecturer asked, every step is its own function, and a table "
            "shows the input, the method, the output and the DES step of each one. We started "
-           "from the course's `tcpServer.c` and `tcpClient.c` [5]. The two computers are two "
+           "from the course's `tcpServer.c` and `tcpClient.c` [4]. The two computers are two "
            "Docker containers on one virtual network (Section 4).")
 
     # ------------------------------------------------------------------ 2
@@ -282,7 +282,7 @@ def build(R):
     R.heading("4  Settings of the distributed system", 1, new_page=True)
     R.para("The two computers are two Docker containers. Each one has its own host name, "
            "network interface, IP address and processes, and both are connected to the same "
-           "virtual Ethernet network `des_lan` [6]. The settings are in `docker-compose.yml`; "
+           "virtual Ethernet network `des_lan` [5]. The settings are in `docker-compose.yml`; "
            "the DES key is given to both machines as the environment variable `DES_KEY`.")
     R.figure("network.png", 15.5)
     R.table(["", "machine-a", "machine-b"], [
@@ -311,11 +311,6 @@ def build(R):
     R.heading("5  Testing and the choices we made", 1)
     R.para("**Tests.**", after=2, keep=True)
     R.bullets([
-        "Unit tests: every step function and the whole cipher are compared with values from "
-        "the handout, from Grabbe's worked example [3] and from FIPS 81; all 25 080 checks "
-        "pass.",
-        "Cross-check: 300 random keys and blocks give the same results as pycryptodome and "
-        "OpenSSL (700 comparisons, no difference).",
         "Network tests, on one computer and on the two Docker machines: every message arrives "
         "unchanged on the other machine, a wrong key is rejected, and the packet capture "
         "contains no plaintext.",
@@ -344,7 +339,7 @@ def build(R):
            "shows three typing errors in the handout. Two machines exchange messages that are "
            "created, encrypted, sent, received, decrypted and displayed unchanged, while only "
            "ciphertext travels over the network. DES itself is no longer secure, because its "
-           "56-bit key can be found by trying all keys [4]; today AES would be used. For "
+           "56-bit key can be found by trying all keys [3]; today AES would be used. For "
            "learning how a block cipher works, however, DES is a good example.")
 
     R.heading("7  References", 1)
@@ -353,7 +348,6 @@ def build(R):
         "Standard (DES)*, 1999.",
         "W. Stallings, *Cryptography and Network Security: Principles and Practice*, 8th ed., "
         "Pearson, 2020, Chapter 4.",
-        "J. Orlin Grabbe, *The DES Algorithm Illustrated*, online article.",
         "Electronic Frontier Foundation, *Cracking DES*, O'Reilly, 1998.",
         "CMPE455/CMSE456 lab handouts *Lab 2 Task. DES on Two Computers* and *A DES Example*, "
         "and the starter code tcpServer.c and tcpClient.c, 2026.",

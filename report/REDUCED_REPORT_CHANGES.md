@@ -9,7 +9,7 @@ for.
 |  | Full report | Reduced Report |
 |---|---|---|
 | Pages | 86 (41 body + 45 appendices) | 42 (16 body + 26 appendix) |
-| Words of running text | about 5 200 | about 2 000 |
+| Words of running text | about 5 200 | about 1 900 |
 | Figures | 28, with captions | 16, without captions |
 | Code boxes in the body | one or more for every step | none (the code is in the appendix) |
 | Tables | 23 | 4 |
@@ -85,10 +85,10 @@ These are lab-sheet requirements, or things the lecturer asked for:
 | 2.7 Padding and modes: code of 2 functions, ECB/CBC table | **Removed**; one sentence in 2.10 and one bullet in Section 5 |
 | 2.8 Distributed application: starter-code problem table (9 rows), frame table, code of 5 functions, 6 screenshots, packet-capture paragraph | 2.10 / 2.11: 3 bullets, 4 sentences about the starter code, 2 screenshots that each show all six stages on one machine, the packet capture |
 | 2.9 Settings: text, diagram, 8-row table, `docker-compose.yml` excerpt, 2 screenshots, commands, 9-row options table, 4 numbered steps for real computers and VMs, Wi-Fi note | Section 4: 1 paragraph, diagram, 4-row table, commands, 1 combined screenshot, 1 paragraph for real computers and VMs |
-| 2.10 Testing: 4 subsections with full output listings, avalanche table (18 rows), chart, note on the handout | Section 5: 4 bullets with the results |
+| 2.10 Testing: 4 subsections with full output listings, avalanche table (18 rows), chart, note on the handout | Section 5: 2 bullets with the results of the network tests and the avalanche effect; the unit tests and the cross-check are left out |
 | 2.11 Comparison of choices: 6-row table and 5 paragraphs | Section 5: 3 bullets and a 2-sentence opinion |
 | 3 Conclusion: paragraph, 4 bullets, paragraph | 1 paragraph |
-| 4 References: 14 | 6 |
+| 4 References: 14 | 5 (Grabbe's article was only cited for the unit tests) |
 | Appendix A: 24 files (sources, tests, Python and shell scripts, Makefile, Docker files) | 15 C files of `src/`, the only code in the report (the Makefile, the Docker files and `des_avalanche.c` are in its zip; the tests and scripts only in the full zip) |
 | A "Figure N." caption under every figure | **No captions**; tables keep theirs |
 | Appendix B: 148-row step table | **Removed** (`test_examples/trace_textbook_encrypt.csv`) |
@@ -126,12 +126,15 @@ make dist REPORT=reduced   # only dist/Lab2_DES_Reduced_Report.zip
 |  | Full report zip | Reduced report zip |
 |---|---|---|
 | Report (pdf + docx) | `DES_Lab2_Report` | `Reduced_Report` |
-| `src/`, `docker/`, `docker-compose.yml`, `Makefile`, `README.md`, `.vscode/`, report scripts and screenshots | yes | yes |
+| `src/`, `docker/`, `docker-compose.yml`, `Makefile`, `.vscode/` | yes | yes |
 | `bin/` | 5 executables | 4 (no `des_test`) |
 | `tests/`, `debug/`, `tools/`, `test_examples/`, `starter_original/` | yes | **no** |
+| Report scripts (`build_report.py`, `build_reduced_report.py`, `make_figures.py`, `cover.json`), `report/assets/`, `report/figures/` | yes | **no** |
+| `README.md` | all of it; names only the full report | only the title and *Run on two machines (Docker)*, *DES step tables*, *Debugging* |
 
 Without `tests/`, `make` skips `bin/des_test` and the Docker build skips the
 unit tests, so the programs and both machines still build from the reduced zip.
 `make test`, `make check`, `make demo`, `make examples`, `make screenshots`,
-`make report` and `make dist` need the full zip. The README of each zip names
-only its own report; the reduced one also says what it leaves out.
+`make report` and `make dist` need the full zip; the reduced README does not
+mention them, and it leaves out the two lines of its sections that need a missing
+folder (`make demo` and the GDB script `debug/des_watch.py`).

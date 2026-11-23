@@ -87,10 +87,10 @@ bin/des_avalanche -K 4                # Table 4.4 (key bit 4 flipped)
 make examples      # test_examples/ (traces, avalanche, test logs, gdb output)
 make demo          # test_examples/docker_run/ (needs Docker)
 make screenshots   # report/figures/ (needs Xvfb, xterm, xdotool, ImageMagick; runs on a virtual display)
-make report        # report/DES_Lab2_Report.docx + .pdf (python-docx, graphviz, matplotlib, LibreOffice)
-make reduced-report   # report/Reduced_Report.docx + .pdf
-make dist          # dist/Lab2_DES.zip with the full report
-make dist REPORT=reduced   # ... with the reduced report (REPORT=both: both)
+make report        # both reports at once: report/DES_Lab2_Report.* and report/Reduced_Report.*
+                   # (python-docx, graphviz, matplotlib, LibreOffice)
+make full-report   # only the full report;  make reduced-report: only the reduced one
+make dist          # dist/Lab2_DES.zip with both reports (REPORT=full or REPORT=reduced: one)
 ```
 
 How every screenshot and figure was made (all commands): `report/build/fig/SCREENSHOTS.md`.

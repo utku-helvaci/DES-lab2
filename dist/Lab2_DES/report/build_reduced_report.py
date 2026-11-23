@@ -8,7 +8,7 @@ sentences, the code and one screenshot. Everything the lab sheet asks for is
 still there; report/REDUCED_REPORT_CHANGES.md lists what was removed or
 shortened compared with the full report (report/build_report.py).
 
-    make reduced-report
+    make report            (both reports)   or   make reduced-report   (only this one)
 
 Output: report/Reduced_Report.docx and report/Reduced_Report.pdf
 """

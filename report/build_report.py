@@ -2,7 +2,8 @@
 """
 report/build_report.py - builds the Lab 2 report from the project itself.
 
-    make report            (runs report/make_figures.py first)
+    make report            (both reports; make_figures.py runs first)
+    make full-report       (only this one)
 
 Inputs   report/cover.json          cover-page fields - replace the [..] placeholders
          test_examples/             outputs of the programs (make examples, make demo)

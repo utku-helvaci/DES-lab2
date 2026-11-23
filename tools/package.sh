@@ -7,12 +7,12 @@
 # Debian 12 (glibc 2.36), so they run on most current Linux distributions and
 # not only on the very new one of the development machine.
 #
-# usage: [REPORT=full|reduced|both] tools/package.sh [name]   (default: full, Lab2_DES)
+# usage: [REPORT=both|full|reduced] tools/package.sh [name]   (default: both, Lab2_DES)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 NAME=${1:-Lab2_DES}
-REPORT=${REPORT:-full}
+REPORT=${REPORT:-both}
 case "$REPORT" in
     full)    reports="DES_Lab2_Report" ;;
     reduced) reports="Reduced_Report" ;;

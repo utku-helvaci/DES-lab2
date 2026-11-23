@@ -14,8 +14,9 @@ for.
 | Tables | 23 | 4 |
 | Appendices | A source code (24 files), B full step table (148 rows), C archive layout | source code (15 C files) |
 
-Build it with `make reduced-report`. Both reports are generated from the same
-code, test results and screenshots, so they never disagree.
+`make report` builds both reports at once (`make reduced-report` builds only
+this one). Both are generated from the same code, test results and
+screenshots, so they never disagree.
 
 ## The sample report in short
 
@@ -101,11 +102,11 @@ These are lab-sheet requirements, or things the lecturer asked for:
 ## What did not change
 
 The programs, the tests, the executables and the test examples are the same,
-and the full report is still built and available. To choose which report goes
-into the submission archive:
+and the full report is still built next to the reduced one. To choose which
+report goes into the submission archive:
 
 ```sh
-make dist                  # full report (default)
+make dist                  # both reports (default)
+make dist REPORT=full      # only the full report
 make dist REPORT=reduced   # only the Reduced Report
-make dist REPORT=both      # both reports
 ```

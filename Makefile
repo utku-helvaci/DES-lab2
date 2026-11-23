@@ -4,8 +4,9 @@
 #   make test       unit tests of every DES step + known-answer tests
 #   make check      test + cross-check against pycryptodome/OpenSSL + loopback chat
 #   make demo       two Docker "machines" exchange encrypted messages
-#   make report / make reduced-report    the full or the reduced lab report
-#   make dist [REPORT=full|reduced|both] the submission zip
+#   make report     BOTH reports (full + reduced), built in parallel
+#   make full-report / make reduced-report    only one of them
+#   make dist [REPORT=both|full|reduced]       the submission zip (default: both)
 #   make clean
 #
 # -O0 -g3 on purpose: every local variable stays visible in the debugger,
@@ -15,8 +16,8 @@ CC       ?= gcc
 CFLAGS   ?= -std=c11 -Wall -Wextra -Wpedantic -O0 -g3
 CPPFLAGS += -D_DEFAULT_SOURCE -Isrc
 BIN      := bin
-# report put into the zip by `make dist`: full, reduced or both
-REPORT   ?= full
+# report(s) put into the zip by `make dist`: both, full or reduced
+REPORT   ?= both
 
 CORE    := src/des.c src/des_trace.c src/des_util.c src/des_modes.c
 CHAT    := src/net.c src/des_chat.c
@@ -25,8 +26,8 @@ HEADERS := $(wildcard src/*.h)
 PROGRAMS := $(BIN)/tcpServer $(BIN)/tcpClient $(BIN)/des_trace \
             $(BIN)/des_avalanche $(BIN)/des_test
 
-.PHONY: all test crosscheck loopback check demo examples screenshots report reduced-report \
-        dist clean
+.PHONY: all test crosscheck loopback check demo examples screenshots figures report \
+        full-report reduced-report dist clean
 
 all: $(PROGRAMS)
 
@@ -71,12 +72,20 @@ examples: all
 screenshots: all
 	python3 tools/screenshots.py all
 
-report: all
+figures: all
 	python3 report/make_figures.py
+
+# both reports at the same time: the full one in the background, the reduced one in
+# the foreground; fails if either of them fails
+report: figures
+	python3 report/build_report.py & full=$$!; \
+	python3 report/build_reduced_report.py; reduced=$$?; \
+	wait $$full && [ $$reduced -eq 0 ]
+
+full-report: figures
 	python3 report/build_report.py
 
-reduced-report: all
-	python3 report/make_figures.py
+reduced-report: figures
 	python3 report/build_reduced_report.py
 
 dist:

@@ -1537,19 +1537,7 @@ def build(R):
         "pycryptodome documentation (DES module); OpenSSL 3 documentation, legacy provider.",
         "Course starter code tcpServer.c and tcpClient.c (DES_tcp_server_client_program).",
     ]
-    for i, ref in enumerate(refs, 1):
-        p = R.doc.add_paragraph()
-        p.paragraph_format.left_indent = Cm(0.9)
-        p.paragraph_format.first_line_indent = Cm(-0.9)
-        p.paragraph_format.space_after = Pt(2)
-        p.paragraph_format.line_spacing = 1.05
-        r = p.add_run(f"[{i}]\t")
-        r.font.size = Pt(10)
-        for k, part in enumerate(re.split(r"\*(.+?)\*", ref)):
-            r = p.add_run(part)
-            r.italic = k % 2 == 1
-            r.font.size = Pt(10)
-        p.paragraph_format.tab_stops.add_tab_stop(Cm(0.9))
+    references(R, refs)
 
     # ------------------------------------------------------------------ appendices
     R.heading("Appendix A  Source code", 1, new_page=True)
@@ -1622,33 +1610,58 @@ def heading_pages(pdf, headings):
     return result
 
 
-def make(cover, labels, headings, pages, path):
+def references(R, refs):
+    """Numbered reference list; *text* is printed in italics."""
+    for i, ref in enumerate(refs, 1):
+        p = R.doc.add_paragraph()
+        p.paragraph_format.left_indent = Cm(0.9)
+        p.paragraph_format.first_line_indent = Cm(-0.9)
+        p.paragraph_format.space_after = Pt(2)
+        p.paragraph_format.line_spacing = 1.05
+        r = p.add_run(f"[{i}]\t")
+        r.font.size = Pt(10)
+        for k, part in enumerate(re.split(r"\*(.+?)\*", ref)):
+            r = p.add_run(part)
+            r.italic = k % 2 == 1
+            r.font.size = Pt(10)
+        p.paragraph_format.tab_stops.add_tab_stop(Cm(0.9))
+
+
+def make(builder, cover, labels, headings, pages, path):
     R = Report(cover, labels, headings, pages)
-    build(R)
+    builder(R)
     R.save(path)
     return R
 
 
-def main():
+def build_document(builder, docx_path, pdf_path):
+    """Build twice so that the table of contents gets real page numbers."""
     with open(os.path.join(HERE, "cover.json"), encoding="utf-8") as f:
         cover = json.load(f)
     os.makedirs(BUILD, exist_ok=True)
-    tmp_docx = os.path.join(BUILD, "pass.docx")
+    tmp_docx = os.path.join(BUILD, "pass_" + os.path.basename(docx_path))
 
-    first = make(cover, {}, [], {}, tmp_docx)                       # labels + headings
-    second = make(cover, first.new_labels, first.headings, {}, tmp_docx)
+    first = make(builder, cover, {}, [], {}, tmp_docx)               # labels + headings
+    second = make(builder, cover, first.new_labels, first.headings, {}, tmp_docx)
     pages = heading_pages(to_pdf(tmp_docx, BUILD), second.headings)
-    make(cover, second.new_labels, second.headings, pages, DOCX)    # final
-    pdf = to_pdf(DOCX, BUILD)
-    shutil.move(pdf, PDF)
-    final_pages = heading_pages(PDF, second.headings)
+    make(builder, cover, second.new_labels, second.headings, pages, docx_path)   # final
+    pdf = to_pdf(docx_path, BUILD)
+    shutil.move(pdf, pdf_path)
+    for tmp in (tmp_docx, os.path.splitext(tmp_docx)[0] + ".pdf"):   # intermediate files
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    final_pages = heading_pages(pdf_path, second.headings)
     moved = [t for l, t in second.headings if final_pages.get(norm(t)) != pages.get(norm(t))]
     if moved:
         print("warning: page numbers moved for:", moved, file=sys.stderr)
-    count = subprocess.run(["pdfinfo", PDF], capture_output=True, text=True).stdout
+    count = subprocess.run(["pdfinfo", pdf_path], capture_output=True, text=True).stdout
     n = re.search(r"Pages:\s+(\d+)", count)
-    print(f"report written: {os.path.relpath(DOCX, ROOT)}, {os.path.relpath(PDF, ROOT)}"
-          f" ({n.group(1) if n else '?'} pages)")
+    print(f"report written: {os.path.relpath(docx_path, ROOT)}, "
+          f"{os.path.relpath(pdf_path, ROOT)} ({n.group(1) if n else '?'} pages)")
+
+
+def main():
+    build_document(build, DOCX, PDF)
 
 
 if __name__ == "__main__":

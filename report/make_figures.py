@@ -7,6 +7,9 @@ report/make_figures.py - diagrams and charts for the report.
   network.png         the two Docker machines on the virtual LAN
   avalanche.png       differing bits per round (handout Tables 4.3 / 4.4)
   build/fig/*.png     screenshots with the empty terminal area trimmed
+  net_settings_both.png   the two network-settings screenshots stacked (reduced report)
+
+How every image in build/fig was made: build/fig/SCREENSHOTS.md.
 
 Needs graphviz (dot), matplotlib, ImageMagick.
 """
@@ -25,6 +28,9 @@ BLUE, BLUE_FILL = "#2a78d6", "#eaf2fc"
 ORANGE, ORANGE_FILL = "#c4501f", "#fdeee7"
 GRAY = "#6b6a64"
 INK = "#1a1a19"
+# no time stamps in the PNG files, so an unchanged figure gives an identical file
+DETERMINISTIC = ["-define", "png:exclude-chunks=date,time", "+set", "date:create",
+                 "+set", "date:modify"]
 
 
 def fn(name, size=9):
@@ -214,7 +220,17 @@ def trim_screenshots():
     for path in sorted(glob.glob(os.path.join(FIG, "*.png"))):
         out = os.path.join(OUT, os.path.basename(path))
         subprocess.run(["convert", path, "-trim", "+repage", "-bordercolor", "#1b1d1e",
-                        "-border", "10", out], check=True)
+                        "-border", "10", *DETERMINISTIC, out], check=True)
+
+
+def stack_settings():
+    """machine-a above machine-b, with a white gap: one figure instead of two."""
+    a = os.path.join(OUT, "net_01_settings_machine-a.png")
+    b = os.path.join(OUT, "net_02_settings_machine-b.png")
+    if os.path.exists(a) and os.path.exists(b):
+        subprocess.run(["convert", a, "-size", "10x16", "xc:white", b, "-background", "white",
+                        "-append", *DETERMINISTIC, os.path.join(OUT, "net_settings_both.png")],
+                       check=True)
 
 
 def main():
@@ -224,6 +240,7 @@ def main():
     network()
     avalanche()
     trim_screenshots()
+    stack_settings()
     print("figures written to", os.path.relpath(OUT, ROOT))
 
 

@@ -5,7 +5,9 @@ each side **creates** a message, **encrypts** it (DES-CBC), **sends** it, **rece
 the answer, **decrypts** it and **displays** it. The two "computers" are two Docker
 containers on a virtual LAN; the same programs also run on two real machines.
 
-The report is `report/DES_Lab2_Report.pdf` (editable: `.docx`).
+The report is `report/DES_Lab2_Report.pdf` (editable: `.docx`). A shorter version in a
+plainer style is `report/Reduced_Report.pdf`; `report/REDUCED_REPORT_CHANGES.md` lists
+what it leaves out.
 
 ## Layout
 
@@ -86,9 +88,12 @@ make examples      # test_examples/ (traces, avalanche, test logs, gdb output)
 make demo          # test_examples/docker_run/ (needs Docker)
 make screenshots   # report/figures/ (needs Xvfb, xterm, xdotool, ImageMagick; runs on a virtual display)
 make report        # report/DES_Lab2_Report.docx + .pdf (python-docx, graphviz, matplotlib, LibreOffice)
-make dist          # dist/Lab2_DES.zip
+make reduced-report   # report/Reduced_Report.docx + .pdf
+make dist          # dist/Lab2_DES.zip with the full report
+make dist REPORT=reduced   # ... with the reduced report (REPORT=both: both)
 ```
 
+How every screenshot and figure was made (all commands): `report/build/fig/SCREENSHOTS.md`.
 Cover-page fields are in `report/cover.json`. The report script starts LibreOffice
 with OpenCL disabled (`SAL_DISABLE_OPENCL=1`): its OpenCL probe crashes with some
 GPU drivers.

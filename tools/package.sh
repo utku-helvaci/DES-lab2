@@ -11,31 +11,43 @@
 #                                   has only the title and the sections "Run on two machines
 #                                   (Docker)", "DES step tables" and "Debugging"; its
 #                                   Makefile has only the targets all, demo and clean.
+#   dist/<name>_3rdtimesthecharm.zip  the document with one C file (pdf + docx), lab2.c, its
+#                                   executable and the Docker files. Only made when asked
+#                                   for: REPORT=3rdtimesthecharm
 #
 # The executables are taken from the Docker image, where they were compiled on
 # Debian 12 (glibc 2.36), so they run on most current Linux distributions and
 # not only on the very new one of the development machine.
 #
-# usage: [REPORT=both|full|reduced] tools/package.sh [name]   (default: both, Lab2_DES)
+# usage: [REPORT=both|full|reduced|3rdtimesthecharm] tools/package.sh [name]
+#        (default: both, Lab2_DES)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 NAME=${1:-Lab2_DES}
 REPORT=${REPORT:-both}
 case "$REPORT" in
-    full | reduced) variants=$REPORT ;;
-    both)           variants="full reduced" ;;
-    *) echo "REPORT must be full, reduced or both" >&2; exit 2 ;;
+    full | reduced | 3rdtimesthecharm) variants=$REPORT ;;
+    both)                              variants="full reduced" ;;
+    *) echo "REPORT must be full, reduced, both or 3rdtimesthecharm" >&2; exit 2 ;;
 esac
 DIST="$PWD/dist"
 mkdir -p "$DIST"
 work=$(mktemp -d)                 # the archives are put together here, not in dist/
 trap 'rm -rf "$work"' EXIT
 
-docker compose build -q
-container=$(docker create des-lab2:latest)
-docker cp "$container:/opt/des-lab/bin" "$work/bin"
-docker rm "$container" > /dev/null
+# copy_from_image <image> <path in the image> <destination>
+copy_from_image() {
+    local container
+    container=$(docker create "$1")
+    docker cp -q "$container:$2" "$3"
+    docker rm "$container" > /dev/null
+}
+
+if [ "$REPORT" != 3rdtimesthecharm ]; then
+    docker compose build -q
+    copy_from_image des-lab2:latest /opt/des-lab/bin "$work/bin"
+fi
 
 # README.md of the full archive: the first paragraph names only the full report
 readme_full() {
@@ -91,6 +103,22 @@ makefile_reduced() {
             -e '/^# the zip of the reduced report/,/^PROGRAMS += /d'
 }
 
+make_zip() {   # $1 = folder that contains $NAME/, $2 = name of the zip
+    rm -f "$DIST/$2.zip"
+    (cd "$1" && zip -qr "$DIST/$2.zip" "$NAME")
+    echo "dist/$2.zip  ($(du -h "$DIST/$2.zip" | cut -f1), $(find "$1/$NAME" -type f | wc -l) files)"
+}
+
+package_3rdtimesthecharm() {
+    local src=3rdtimesthecharm stage="$work/3rdtimesthecharm/$NAME" image
+    mkdir -p "$stage/report"
+    cp "$src/lab2.c" "$src/Dockerfile" "$src/docker-compose.yml" "$src/README.md" "$stage/"
+    cp report/3rdtimesthecharm.pdf report/3rdtimesthecharm.docx "$stage/report/"
+    image=$(docker build -q "$src")
+    copy_from_image "$image" /lab2/lab2 "$stage/lab2"
+    make_zip "$work/3rdtimesthecharm" "${NAME}_3rdtimesthecharm"
+}
+
 package() {    # $1 = full or reduced
     local report zipname stage
     if [ "$1" = full ]; then
@@ -120,11 +148,13 @@ package() {    # $1 = full or reduced
     fi
     find "$stage" -name '__pycache__' -prune -exec rm -rf {} +
 
-    rm -f "$DIST/$zipname.zip"
-    (cd "$work/$1" && zip -qr "$DIST/$zipname.zip" "$NAME")
-    echo "dist/$zipname.zip  ($(du -h "$DIST/$zipname.zip" | cut -f1), $(find "$stage" -type f | wc -l) files)"
+    make_zip "$work/$1" "$zipname"
 }
 
 for variant in $variants; do
-    package "$variant"
+    if [ "$variant" = 3rdtimesthecharm ]; then
+        package_3rdtimesthecharm
+    else
+        package "$variant"
+    fi
 done

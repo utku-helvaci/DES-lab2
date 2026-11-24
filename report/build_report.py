@@ -1580,11 +1580,11 @@ def build(R):
 # --------------------------------------------------------------------------- #
 
 
-def to_pdf(docx_path, outdir):
+def to_pdf(docx_path, outdir, env=None):
     profile = tempfile.mkdtemp(prefix="des-report-lo-")
     # LibreOffice probes OpenCL at start-up; on some GPU drivers (here: AMD ROCm)
     # that probe crashes. A text document needs neither OpenCL nor a GPU.
-    env = dict(os.environ, SAL_DISABLE_OPENCL="1", SAL_USE_VCLPLUGIN="svp")
+    env = dict(env or os.environ, SAL_DISABLE_OPENCL="1", SAL_USE_VCLPLUGIN="svp")
     try:
         subprocess.run(["soffice", f"-env:UserInstallation={pathlib.Path(profile).as_uri()}",
                         "--headless", "--convert-to", "pdf", "--outdir", outdir, docx_path],
@@ -1630,25 +1630,27 @@ def references(R, refs):
         p.paragraph_format.tab_stops.add_tab_stop(Cm(0.9))
 
 
-def make(builder, cover, labels, headings, pages, path):
-    R = Report(cover, labels, headings, pages)
+def make(builder, cover, labels, headings, pages, path, report=Report):
+    R = report(cover, labels, headings, pages)
     builder(R)
     R.save(path)
     return R
 
 
-def build_document(builder, docx_path, pdf_path):
-    """Build twice so that the table of contents gets real page numbers."""
+def build_document(builder, docx_path, pdf_path, report=Report, env=None):
+    """Build twice so that the table of contents gets real page numbers.
+
+    report: the class that writes the document; env: environment for LibreOffice"""
     with open(os.path.join(HERE, "cover.json"), encoding="utf-8") as f:
         cover = json.load(f)
     os.makedirs(BUILD, exist_ok=True)
     tmp_docx = os.path.join(BUILD, "pass_" + os.path.basename(docx_path))
 
-    first = make(builder, cover, {}, [], {}, tmp_docx)               # labels + headings
-    second = make(builder, cover, first.new_labels, first.headings, {}, tmp_docx)
-    pages = heading_pages(to_pdf(tmp_docx, BUILD), second.headings)
-    make(builder, cover, second.new_labels, second.headings, pages, docx_path)   # final
-    pdf = to_pdf(docx_path, BUILD)
+    first = make(builder, cover, {}, [], {}, tmp_docx, report)       # labels + headings
+    second = make(builder, cover, first.new_labels, first.headings, {}, tmp_docx, report)
+    pages = heading_pages(to_pdf(tmp_docx, BUILD, env), second.headings)
+    make(builder, cover, second.new_labels, second.headings, pages, docx_path, report)   # final
+    pdf = to_pdf(docx_path, BUILD, env)
     shutil.move(pdf, pdf_path)
     for tmp in (tmp_docx, os.path.splitext(tmp_docx)[0] + ".pdf"):   # intermediate files
         if os.path.exists(tmp):

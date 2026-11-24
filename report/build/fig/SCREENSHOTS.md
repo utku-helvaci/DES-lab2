@@ -192,6 +192,7 @@ Decryption gives the same text every time.
 | File | How it was made |
 |---|---|
 | `des_structure.png`, `des_round.png`, `network.png` | Graphviz drawings. Their sources are the `.dot` files in this folder, written by `report/make_figures.py`: `dot -Tpng -Gdpi=220 -o des_structure.png des_structure.dot` (the same for the other two). |
+| `network_arial.png` | The drawing `network.png` with Arial as its only font, for the reduced report. Same `dot` command, with `network_arial.dot` and the environment of `arial_fonts()` in `report/make_figures.py` (a temporary fontconfig file that adds the real Arial). |
 | `avalanche.png` | matplotlib chart drawn by `avalanche()` in `report/make_figures.py` from `test_examples/avalanche_plaintext_bit4.csv` and `test_examples/avalanche_key_bit4.csv` (made by `bin/des_avalanche -P 4 -f csv` and `bin/des_avalanche -K 4 -f csv`). |
 | `net_settings_both.png` | The two settings screenshots stacked, for the reduced report: `convert net_01_settings_machine-a.png -size 10x16 xc:white net_02_settings_machine-b.png -background white -append net_settings_both.png` |
 
@@ -203,7 +204,8 @@ Decryption gives the same text every time.
 |---|---|---|
 | `dbg_01` - `dbg_03`, `dbg_05` - `dbg_08`, `dbg_10`, `dbg_11`, `dbg_13`, `dbg_14` | yes | yes |
 | `dbg_04`, `dbg_09`, `dbg_12`, `dbg_15` | yes | - |
-| `net_06`, `net_07`, `net_08`, `network.png` | yes | yes |
+| `net_06`, `net_07`, `net_08` | yes | yes |
+| `network.png` | yes | as `network_arial.png` |
 | `net_01`, `net_02` | yes | as `net_settings_both.png` |
 | `net_03`, `net_04`, `net_05`, `net_09`, `des_structure.png`, `des_round.png`, `avalanche.png` | yes | - |
 | `net_10` | - | - |

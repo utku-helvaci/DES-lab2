@@ -105,3 +105,7 @@ How every screenshot and figure was made (all commands): `report/build/fig/SCREE
 Cover-page fields are in `report/cover.json`. The report script starts LibreOffice
 with OpenCL disabled (`SAL_DISABLE_OPENCL=1`): its OpenCL probe crashes with some
 GPU drivers.
+
+The only font of the reduced report is Arial. If Arial is not installed, the build reads
+it from a mounted Windows partition (`/mnt/*/Windows/Fonts`) or from the folder in
+`ARIAL_DIR`; without both it prints a warning and the PDF gets a look-alike font.

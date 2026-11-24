@@ -8,8 +8,9 @@ for.
 
 |  | Full report | Reduced Report |
 |---|---|---|
-| Pages | 86 (41 body + 45 appendices) | 42 (16 body + 26 appendix) |
-| Words of running text | about 5 200 | about 1 900 |
+| Pages | 86 (41 body + 45 appendices) | 43 (16 body + 27 appendix) |
+| Words of running text | about 5 400 | about 1 900 |
+| Fonts | Arial; Courier New for code | Arial only |
 | Figures | 28, with captions | 16, without captions |
 | Code boxes in the body | one or more for every step | none (the code is in the appendix) |
 | Tables | 23 | 4 |
@@ -88,7 +89,8 @@ These are lab-sheet requirements, or things the lecturer asked for:
 | 2.10 Testing: 4 subsections with full output listings, avalanche table (18 rows), chart, note on the handout | Section 5: 2 bullets with the results of the network tests and the avalanche effect; the unit tests and the cross-check are left out |
 | 2.11 Comparison of choices: 6-row table and 5 paragraphs | Section 5: 3 bullets and a 2-sentence opinion |
 | 3 Conclusion: paragraph, 4 bullets, paragraph | 1 paragraph |
-| 4 References: 14 | 5 (Grabbe's article was only cited for the unit tests) |
+| 4 References: 14 | 3: the lecture chapter *Ch08_2_DES* (instead of the standard, the textbook and *Cracking DES*), the lab handouts and Docker. The sentence of the conclusion about the security of DES now says what the chapter says |
+| Arial; Courier New for code, hex values and function names; Symbol bullets | **Arial only**: text, tables, code, bullets and the network drawing (`network_arial.png`). In the code of the appendix tab stops keep the columns aligned. Only the screenshots show another font (the terminal's), because they are pictures |
 | Appendix A: 24 files (sources, tests, Python and shell scripts, Makefile, Docker files) | 15 C files of `src/`, the only code in the report (the Makefile, the Docker files and `des_avalanche.c` are in its zip; the tests and scripts only in the full zip) |
 | A "Figure N." caption under every figure | **No captions**; tables keep theirs |
 | Appendix B: 148-row step table | **Removed** (`test_examples/trace_textbook_encrypt.csv`) |

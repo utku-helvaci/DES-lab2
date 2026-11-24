@@ -8,13 +8,19 @@ sentences and a screenshot. Like the sample, the figures have no captions, and
 the code is only in the appendix, not in the sections of the steps. Everything
 the lab sheet asks for is still there; report/REDUCED_REPORT_CHANGES.md lists
 what was removed or shortened compared with the full report (report/build_report.py).
+Arial is the only font of the document, also for code, bullets and the network drawing.
 
     make report            (both reports)   or   make reduced-report   (only this one)
 
 Output: report/Reduced_Report.docx and report/Reduced_Report.pdf
 """
 import os
+import re
+import subprocess
 import sys
+import zipfile
+
+from lxml import etree
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -22,12 +28,201 @@ sys.dont_write_bytecode = True       # no __pycache__ folder next to the report
 
 import build_report as full  # noqa: E402  shared data helpers, layout and two-pass build
 from build_report import (ACCENT, GRAY, NOTE_FILL, STEP_HEADER, STEP_WIDTHS,  # noqa: E402
-                          Cm, Pt, WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX)
+                          Cm, OxmlElement, Pt, WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX, qn)
+from make_figures import arial_fonts  # noqa: E402
+
+full.MONO = full.FONT       # code in Arial too
 
 DOCX = os.path.join(HERE, "Reduced_Report.docx")
 PDF = os.path.join(HERE, "Reduced_Report.pdf")
 LOGO = os.path.join(HERE, "assets", "emu_logo.png")
 SHOT = 13.5          # width of a debugger screenshot, cm
+
+# --------------------------------------------------------------------------- #
+#  Arial as the only font                                                      #
+# --------------------------------------------------------------------------- #
+
+# advance widths of the Arial glyphs " " ... "~" in 1/1000 of the font size
+ARIAL_WIDTHS = dict(zip(map(chr, range(32, 127)), map(int, """
+    278 278 355 556 556 889 667 191 333 333 389 584 278 333 278 278 556 556 556 556 556 556
+    556 556 556 556 278 278 584 584 584 556 1015 667 667 722 722 667 611 778 722 278 500 667
+    556 833 722 778 667 778 722 667 611 722 667 944 667 667 611 278 278 278 469 556 333 556
+    556 500 556 556 278 556 556 222 222 500 222 833 556 556 556 556 333 500 278 556 500 722
+    500 500 500 334 260 334 584""".split())))
+COLUMN = 0.5         # width of one column of source code, in font sizes
+DIGIT = 0.556        # width of an Arial digit = of two Arial spaces
+CODE_TOKEN = re.compile(r"[-=]{4,}|(?:(?![-=]{4,})\S)+")     # a rule (----, ====) or a word
+
+
+def text_width(text):
+    return sum(ARIAL_WIDTHS[ch] for ch in text) / 1000
+
+
+def rule_spacing(x, rule, end):
+    """Extra width per character with which a rule from x ends at `end` (0: leave it alone)."""
+    extra = 0 if end is None else (end - x - text_width(rule)) / len(rule)
+    return extra if -0.1 < extra < 0.25 else 0
+
+
+def end_of(pieces):
+    """Where the pieces of a line end, in font sizes."""
+    x = 0.0
+    for stop, text, end in pieces:
+        x = x if stop is None else stop
+        x += text_width(text) + rule_spacing(x, text, end) * len(text)
+    return x
+
+
+def code_layout(lines):
+    """Keeps the columns of source code in a proportional font.
+
+    Returns for every line its pieces [tab stop or None, text, end of a rule or None], all
+    in font sizes. A piece gets a tab stop at the indentation and where its line is aligned
+    with a neighbouring line (trailing comments, declarations, drawn tables); consecutive
+    lines share the stop. Other spaces stay spaces."""
+    tokens = []                                              # [(column, spaces before, text)]
+    for line in lines:
+        found, end = [], 0
+        for m in CODE_TOKEN.finditer(line):
+            found.append((m.start(), m.start() - end, m.group()))
+            end = m.end()
+        tokens.append(found)
+    is_number = lambda before, word: before[-1:] in (",", "{") and word[0].isdigit()
+    gaps = [{c: g for (c, g, word), before in zip(row[1:], row) if not is_number(before[2], word)}
+            for row in tokens]                                   # column -> spaces before it
+    is_rule = lambda word: len(word) >= 4 and set(word) <= set("-=")
+    is_comment = [line.lstrip().startswith(("/*", "*")) for line in lines]
+
+    layout, aligned = [], {}
+    for n, row in enumerate(tokens):
+        near = [gaps[i] for i in (n - 1, n + 1)
+                if 0 <= i < len(lines) and is_comment[i] == is_comment[n]]
+        rules = [k for k, t in enumerate(row) if is_rule(t[2])]
+        border = any(g == 0 for _, g, t in row[1:] if is_rule(t))          # +----+----+
+        drawn_table = lines[n].count("|") >= 3
+        pieces = []
+        for k, (column, gap, word) in enumerate(row):
+            shared = any(other.get(column, 0) >= 2 for other in near)
+            last = pieces[-1][1] if pieces else ""
+            number = is_number(last, word)
+            end = (column + len(word)) * COLUMN if is_rule(word) and \
+                (border or k == rules[-1]) else None             # this rule keeps its right end
+            if k == 0:                                           # the indentation
+                pad = column % 4 if word[0].isdigit() else 0
+                stop = (column - pad) * COLUMN + pad * DIGIT
+                pieces.append([stop if column else None, word, end])
+            elif number:                                         # padding = half digits
+                pieces[-1][1] += " " * (2 * gap - (last[-1] == ",")) + word
+            elif gap and (gap >= 3 or (gap == 2 and shared)
+                          or (shared and k <= 2 and not is_comment[n])     # declarations
+                          or (drawn_table and word[0] == "|")
+                          or (rules and k == rules[-1] + 1)):              # the */ after a rule
+                aligned.setdefault(column, []).append((n, len(pieces)))
+                pieces.append([0.0, word, end])
+            elif is_rule(word) or is_rule(last.strip()):
+                pieces[-1][1] += " " * gap
+                pieces.append([None, word, end])
+            else:
+                pieces[-1][1] += " " * gap + word
+        layout.append(pieces)
+
+    for column in sorted(aligned):
+        runs = []
+        for n, k in aligned[column]:                             # groups of consecutive lines
+            if runs and runs[-1][-1][0] == n - 1:
+                runs[-1].append((n, k))
+            else:
+                runs.append([(n, k)])
+        for run in runs:
+            stop = max([column * COLUMN] + [end_of(layout[n][:k]) + 0.4 for n, k in run])
+            for n, k in run:
+                layout[n][k][0] = stop
+    return layout
+
+
+class ArialReport(full.Report):
+    """The report with Arial instead of Courier New, Symbol and the theme fonts."""
+
+    def runs(self, p, text, **kw):
+        return super().runs(p, text.replace("`", ""), **kw)      # no special font for code
+
+    def table(self, header, rows, widths, mono=(), **kw):
+        return super().table(header, rows, widths, **kw)
+
+    def code(self, text, size=7.5):
+        """Source code in a proportional font: the columns are kept with tab stops."""
+        lines = text.expandtabs(4).rstrip("\n").split("\n")
+        short = len(lines) <= 20
+        left = self.doc.styles["Code"].paragraph_format.left_indent
+        for i, (line, pieces) in enumerate(zip(lines, code_layout(lines))):
+            p = self.doc.add_paragraph(style="Code")
+            for k, (stop, piece, end) in enumerate(pieces):
+                x = end_of(pieces[:k]) if stop is None else stop
+                if stop is not None:
+                    p.paragraph_format.tab_stops.add_tab_stop(left + Pt(stop * size))
+                    p.add_run("\t").font.size = Pt(size)
+                r = p.add_run(piece)
+                r.font.size = Pt(size)
+                if rule_spacing(x, piece, end):
+                    spacing = OxmlElement("w:spacing")           # in 1/20 pt
+                    spacing.set(qn("w:val"), str(round(rule_spacing(x, piece, end) * size * 20)))
+                    r._r.get_or_add_rPr().insert_element_before(
+                        spacing, "w:w", "w:kern", "w:position", "w:sz", "w:szCs")
+            if not line.strip():
+                p.add_run(" ").font.size = Pt(size)
+            if i < (len(lines) - 1 if short else 6):     # no heading with a line or two
+                p.paragraph_format.keep_with_next = True
+        spacer = self.doc.add_paragraph()
+        spacer.paragraph_format.space_after = Pt(4)
+        spacer.paragraph_format.line_spacing = 1.0
+
+    def save(self, path):
+        super().save(path)
+        arial_only(path)
+
+
+def arial_only(path):
+    """Replaces every other font name inside the .docx: styles, bullets, theme, font table."""
+    with zipfile.ZipFile(path) as z:
+        parts = [(info, z.read(info)) for info in z.infolist()]
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        for info, data in parts:
+            if info.filename.startswith("word/") and info.filename.endswith(".xml"):
+                root = etree.fromstring(data)
+                for el in root.iter(qn("w:rFonts")):
+                    el.attrib.clear()
+                    for attr in ("w:ascii", "w:hAnsi", "w:eastAsia", "w:cs"):
+                        el.set(qn(attr), full.FONT)
+                for el in root.iter(qn("w:lvlText")):            # Symbol bullets
+                    el.set(qn("w:val"), re.sub("[\ue000-\uf8ff]", "\u2022", el.get(qn("w:val"))))
+                for el in list(root.iter("{*}mathFont")):        # equations (there are none)
+                    el.getparent().remove(el)
+                for el in list(root.iter(qn("w:font"))):         # font table
+                    if el.get(qn("w:name")) != full.FONT:
+                        el.getparent().remove(el)
+                for group in list(root.iter(qn("a:majorFont"), qn("a:minorFont"))):
+                    for el in list(group):
+                        if el.tag == qn("a:latin"):
+                            el.attrib.clear()
+                            el.set("typeface", full.FONT)
+                        elif el.tag in (qn("a:ea"), qn("a:cs")):
+                            el.attrib.clear()
+                            el.set("typeface", "")
+                        else:
+                            group.remove(el)
+                data = etree.tostring(root, xml_declaration=True, encoding="UTF-8",
+                                      standalone=True)
+            z.writestr(info, data)
+
+
+def check_fonts(pdf):
+    """Says so if the PDF contains another font than Arial (Arial not installed)."""
+    table = subprocess.run(["pdffonts", pdf], capture_output=True, text=True).stdout
+    names = {line.split()[0].split("+")[-1] for line in table.splitlines()[2:]}
+    other = sorted(n for n in names if not re.match(r"Arial(MT|-\w+MT)?$", n))
+    if other:
+        print("warning: the PDF contains other fonts than Arial:", ", ".join(other),
+              file=sys.stderr)
 
 
 def cover_page(R):
@@ -89,14 +284,14 @@ def build(R):
     R.para("DES (Data Encryption Standard) is a block cipher. It encrypts data in 64-bit blocks "
            "with a 64-bit key, of which 56 bits are used, in 16 rounds. Encryption and "
            "decryption use the same algorithm; decryption only applies the round keys in "
-           "reverse order [1, 2].")
+           "reverse order [1].")
     R.para("In this lab we implement DES in C and use it in a distributed application. Two "
            "processes run on two computers, and each one can create a message, encrypt it, "
            "send it, receive a message, decrypt it and display it. The displayed text must be "
            "the same as the text typed on the other computer. Every DES step has to be checked "
            "in the debugger. As the lecturer asked, every step is its own function, and a table "
            "shows the input, the method, the output and the DES step of each one. We started "
-           "from the course's `tcpServer.c` and `tcpClient.c` [4]. The two computers are two "
+           "from the course's `tcpServer.c` and `tcpClient.c` [2]. The two computers are two "
            "Docker containers on one virtual network (Section 4).")
 
     # ------------------------------------------------------------------ 2
@@ -282,9 +477,9 @@ def build(R):
     R.heading("4  Settings of the distributed system", 1, new_page=True)
     R.para("The two computers are two Docker containers. Each one has its own host name, "
            "network interface, IP address and processes, and both are connected to the same "
-           "virtual Ethernet network `des_lan` [5]. The settings are in `docker-compose.yml`; "
+           "virtual Ethernet network `des_lan` [3]. The settings are in `docker-compose.yml`; "
            "the DES key is given to both machines as the environment variable `DES_KEY`.")
-    R.figure("network.png", 15.5)
+    R.figure("network_arial.png", 15.5)
     R.table(["", "machine-a", "machine-b"], [
         ["Role", "Machine A, sends first", "Machine B, receives first"],
         ["Host name", "machine-a", "machine-b"],
@@ -338,17 +533,14 @@ def build(R):
            "debugger and against the handout's example: all values agree, and the program even "
            "shows three typing errors in the handout. Two machines exchange messages that are "
            "created, encrypted, sent, received, decrypted and displayed unchanged, while only "
-           "ciphertext travels over the network. DES itself is no longer secure, because its "
-           "56-bit key can be found by trying all keys [3]; today AES would be used. For "
-           "learning how a block cipher works, however, DES is a good example.")
+           "ciphertext travels over the network. DES itself is no longer secure: in January 1999 "
+           "a DES key was broken publicly in 22 hours and 15 minutes, and AES has replaced DES "
+           "[1]. For learning how a block cipher works, however, DES is a good example.")
 
     R.heading("7  References", 1)
     full.references(R, [
-        "National Institute of Standards and Technology, *FIPS PUB 46-3: Data Encryption "
-        "Standard (DES)*, 1999.",
-        "W. Stallings, *Cryptography and Network Security: Principles and Practice*, 8th ed., "
-        "Pearson, 2020, Chapter 4.",
-        "Electronic Frontier Foundation, *Cracking DES*, O'Reilly, 1998.",
+        "*Data Encryption Standard (DES)*, CMPE455 lecture notes, "
+        "https://staff.emu.edu.tr/gurcuoz/Documents/CMPE455 Ch08_2_DES",
         "CMPE455/CMSE456 lab handouts *Lab 2 Task. DES on Two Computers* and *A DES Example*, "
         "and the starter code tcpServer.c and tcpClient.c, 2026.",
         "Docker Inc., *Bridge network driver*, Docker documentation (docs.docker.com).",
@@ -369,4 +561,6 @@ def build(R):
 
 
 if __name__ == "__main__":
-    full.build_document(build, DOCX, PDF)
+    with arial_fonts() as env:
+        full.build_document(build, DOCX, PDF, report=ArialReport, env=env)
+    check_fonts(PDF)

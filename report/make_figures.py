@@ -5,6 +5,7 @@ report/make_figures.py - diagrams and charts for the report.
   des_structure.png   DES block + key schedule, every box = one C function
   des_round.png       one round, every box = one C function
   network.png         the two Docker machines on the virtual LAN
+  network_arial.png   the same drawing with Arial as its only font (reduced report)
   avalanche.png       differing bits per round (handout Tables 4.3 / 4.4)
   build/fig/*.png     screenshots with the empty terminal area trimmed
   net_settings_both.png   the two network-settings screenshots stacked (reduced report)
@@ -13,11 +14,14 @@ How every image in build/fig was made: build/fig/SCREENSHOTS.md.
 
 Needs graphviz (dot), matplotlib, ImageMagick.
 """
+import contextlib
 import csv
 import glob
 import html
 import os
 import subprocess
+import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -33,8 +37,52 @@ DETERMINISTIC = ["-define", "png:exclude-chunks=date,time", "+set", "date:create
                  "+set", "date:modify"]
 
 
-def fn(name, size=9):
-    return f'<font face="Courier New" point-size="{size}">{name}</font>'
+# Arial is not a free font: Linux systems usually have a look-alike instead (Liberation
+# Sans, Arimo). These are the places where a mounted Windows partition has the real one.
+ARIAL_FILES = ("arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf")
+ARIAL_DIRS = ("/mnt/*/Windows/Fonts", "/media/*/*/Windows/Fonts",
+              "/run/media/*/*/Windows/Fonts")
+
+
+@contextlib.contextmanager
+def arial_fonts():
+    """Environment variables with which LibreOffice and Graphviz find the real Arial.
+
+    If Arial is not installed, the font files in $ARIAL_DIR or on a mounted Windows
+    partition are read through a temporary fontconfig file; nothing is installed or copied.
+    """
+    env = dict(os.environ)
+    match = subprocess.run(["fc-match", "-f", "%{family}", "Arial"], capture_output=True,
+                           text=True).stdout
+    if "Arial" in match.split(","):
+        yield env
+        return
+    folders = [env["ARIAL_DIR"]] if env.get("ARIAL_DIR") else \
+        sorted(d for pattern in ARIAL_DIRS for d in glob.glob(pattern))
+    folder = next((d for d in folders
+                   if all(os.path.exists(os.path.join(d, f)) for f in ARIAL_FILES)), None)
+    if folder is None:
+        print(f"warning: Arial not found, {match or 'another font'} is used instead (install "
+              "Arial or set ARIAL_DIR to a folder with arial.ttf, arialbd.ttf, ariali.ttf "
+              "and arialbi.ttf)", file=sys.stderr)
+        yield env
+        return
+    with tempfile.TemporaryDirectory(prefix="des-report-arial-") as tmp:
+        os.mkdir(os.path.join(tmp, "fonts"))
+        for f in ARIAL_FILES:
+            os.symlink(os.path.join(folder, f), os.path.join(tmp, "fonts", f))
+        conf = os.path.join(tmp, "fonts.conf")
+        with open(conf, "w") as f:
+            f.write('<?xml version="1.0"?>\n<!DOCTYPE fontconfig SYSTEM "fonts.dtd">\n'
+                    f"<fontconfig>\n  <cachedir>{html.escape(tmp)}/cache</cachedir>\n"
+                    f"  <dir>{html.escape(tmp)}/fonts</dir>\n"
+                    '  <include ignore_missing="yes">/etc/fonts/fonts.conf</include>\n'
+                    "</fontconfig>\n")
+        yield dict(env, FONTCONFIG_FILE=conf)
+
+
+def fn(name, size=9, face="Courier New"):
+    return f'<font face="{face}" point-size="{size}">{name}</font>'
 
 
 def node(title, item, function, extra=""):
@@ -44,12 +92,12 @@ def node(title, item, function, extra=""):
     return f"<{lines}<br/>{fn(function)}>"
 
 
-def render(name, dot_source):
+def render(name, dot_source, env=None):
     path = os.path.join(OUT, name + ".dot")
     with open(path, "w") as f:
         f.write(dot_source)
     subprocess.run(["dot", "-Tpng", "-Gdpi=220", "-o", os.path.join(OUT, name + ".png"), path],
-                   check=True)
+                   check=True, env=env)
 
 
 COMMON = f"""
@@ -147,7 +195,8 @@ def des_round():
     render("des_round", src)
 
 
-def network():
+def network(name="network", face="Courier New", size=9.5, env=None):
+    """face, size: the font of the program names"""
     src = f"""graph NET {{
   graph [fontname="Arial", fontsize=11, bgcolor="white", pad=0.15, rankdir=LR, nodesep=0.5,
          ranksep=0.7];
@@ -157,10 +206,10 @@ def network():
   subgraph cluster_host {{
     label="Host computer (Linux, Docker Engine) - docker-compose.yml"; labeljust=l;
     style="rounded"; color="#9a9993"; fontcolor="{GRAY}";
-    A [label=<<b>machine-a</b>  (container = computer A)<br/>hostname machine-a<br/>eth0  172.28.10.10/24<br/>{fn("tcpClient -s 172.28.10.20", 9.5)}<br/><font point-size="9" color="{GRAY}">Machine A: sends first</font>>];
+    A [label=<<b>machine-a</b>  (container = computer A)<br/>hostname machine-a<br/>eth0  172.28.10.10/24<br/>{fn("tcpClient -s 172.28.10.20", size, face)}<br/><font point-size="9" color="{GRAY}">Machine A: sends first</font>>];
     BR [label=<<b>des_lan</b> (virtual Ethernet switch)<br/>Linux bridge  des-lan0<br/>subnet 172.28.10.0/24<br/>gateway 172.28.10.1>, fillcolor="#f3f3f1", color="#8a8984"];
-    B [label=<<b>machine-b</b>  (container = computer B)<br/>hostname machine-b<br/>eth0  172.28.10.20/24<br/>{fn("tcpServer   (0.0.0.0:9000)", 9.5)}<br/><font point-size="9" color="{GRAY}">Machine B: receives first</font>>];
-    S [label=<<b>sniffer</b> (optional)<br/>{fn("tcpdump -i des-lan0", 9.5)}<br/><font point-size="9" color="{GRAY}">sees only IV + ciphertext</font>>, fillcolor="{ORANGE_FILL}", color="{ORANGE}"];
+    B [label=<<b>machine-b</b>  (container = computer B)<br/>hostname machine-b<br/>eth0  172.28.10.20/24<br/>{fn("tcpServer   (0.0.0.0:9000)", size, face)}<br/><font point-size="9" color="{GRAY}">Machine B: receives first</font>>];
+    S [label=<<b>sniffer</b> (optional)<br/>{fn("tcpdump -i des-lan0", size, face)}<br/><font point-size="9" color="{GRAY}">sees only IV + ciphertext</font>>, fillcolor="{ORANGE_FILL}", color="{ORANGE}"];
   }}
   A -- BR [label="veth pair"];
   BR -- B [label="veth pair"];
@@ -168,7 +217,7 @@ def network():
   A -- B [style=bold, color="{BLUE}", fontcolor="{BLUE}", constraint=false,
           label=<TCP 172.28.10.10:&lt;ephemeral&gt;  &lt;-&gt;  172.28.10.20:9000<br/>frame = length | mode | IV | DES ciphertext>];
 }}"""
-    render("network", src)
+    render(name, src, env)
 
 
 def avalanche():
@@ -238,6 +287,8 @@ def main():
     des_structure()
     des_round()
     network()
+    with arial_fonts() as env:
+        network("network_arial", "Arial", 10.5, env)
     avalanche()
     trim_screenshots()
     stack_settings()

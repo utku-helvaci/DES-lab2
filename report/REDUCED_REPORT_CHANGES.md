@@ -128,15 +128,21 @@ make dist REPORT=reduced   # only dist/Lab2_DES_Reduced_Report.zip
 |  | Full report zip | Reduced report zip |
 |---|---|---|
 | Report (pdf + docx) | `DES_Lab2_Report` | `Reduced_Report` |
-| `src/`, `docker/`, `docker-compose.yml`, `Makefile`, `.vscode/` | yes | yes |
+| `src/`, `docker/`, `docker-compose.yml`, `.vscode/` | yes | yes |
+| `Makefile` | all of it | only the targets `all`, `demo` and `clean` |
 | `bin/` | 5 executables | 4 (no `des_test`) |
 | `tests/`, `debug/`, `tools/`, `test_examples/`, `starter_original/` | yes | **no** |
 | Report scripts (`build_report.py`, `build_reduced_report.py`, `make_figures.py`, `cover.json`), `report/assets/`, `report/figures/` | yes | **no** |
 | `README.md` | all of it; names only the full report | only the title and *Run on two machines (Docker)*, *DES step tables*, *Debugging* |
 
-Without `tests/`, `make` skips `bin/des_test` and the Docker build skips the
-unit tests, so the programs and both machines still build from the reduced zip.
-`make test`, `make check`, `make demo`, `make examples`, `make screenshots`,
-`make report` and `make dist` need the full zip; the reduced README does not
-mention them, and it leaves out the two lines of its sections that need a missing
-folder (`make demo` and the GDB script `debug/des_watch.py`).
+The Makefile of the reduced zip leaves out the targets `test`, `crosscheck`,
+`loopback`, `check`, `examples`, `screenshots`, `figures`, `report`,
+`full-report`, `reduced-report` and `dist`, and what only they use (their help
+lines, `REPORT`, `bin/des_test`). The programs and both machines still build from
+the reduced zip: `make` builds the four programs, and without `tests/` the Docker
+build skips the unit tests.
+
+`make demo` is still in the reduced Makefile, but it reads its messages from
+`test_examples/`, so it works only from the full zip. The reduced README leaves
+out the two lines of its sections that need a missing folder (`make demo` and the
+GDB script `debug/des_watch.py`).

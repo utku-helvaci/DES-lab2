@@ -9,7 +9,8 @@
 #                                   starter_original/, test_examples/, tests/ or tools/, no
 #                                   report scripts, screenshots or bin/des_test. Its README
 #                                   has only the title and the sections "Run on two machines
-#                                   (Docker)", "DES step tables" and "Debugging".
+#                                   (Docker)", "DES step tables" and "Debugging"; its
+#                                   Makefile has only the targets all, demo and clean.
 #
 # The executables are taken from the Docker image, where they were compiled on
 # Debian 12 (glibc 2.36), so they run on most current Linux distributions and
@@ -61,6 +62,35 @@ readme_reduced() {
         sed -e '/^make demo /d' -e '/debug\/des_watch\.py/{N;d}'
 }
 
+# Makefile of the reduced archive: without the targets that test the programs or make the
+# examples, screenshots, reports and zips, and without what only those targets use (their
+# help lines, REPORT, bin/des_test)
+makefile_reduced() {
+    local targets='test crosscheck loopback check examples screenshots figures'
+    targets+=' report full-report reduced-report dist $(BIN)/des_test'
+    awk -v targets="$targets" '
+        BEGIN { n = split(targets, t, " "); for (i = 1; i <= n; i++) drop[t[i]]
+                RS = ""; FS = "\n" }                      # one paragraph at a time
+        {   for (i = 1; i < NF && $i ~ /^#/; i++);        # a rule stands below its comment
+            rule = $i; sub(/:.*/, "", rule)
+            if (rule in drop) { seen[rule]; next }
+            if (NR > 1) print "" }
+        rule == ".PHONY" {
+            gsub(/\\\n/, ""); n = split($0, word, " "); line = word[1]
+            for (i = 2; i <= n; i++) if (!(word[i] in drop)) line = line " " word[i]
+            print line; next }
+        {   skip = 0                                      # help lines: "#   make <target>"
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /^#   make/)    { split($i, word, " "); skip = (word[3] in drop) }
+                else if ($i !~ /^#    /) skip = 0
+                if (!skip) print $i } }
+        END { for (r in drop) if (!(r in seen)) {
+                  print "Makefile has no target \"" r "\"" > "/dev/stderr"; exit 1 } }
+    ' Makefile |
+        sed -e '/^# zip(s) made by/,/^REPORT /d' \
+            -e '/^# the zip of the reduced report/,/^PROGRAMS += /d'
+}
+
 package() {    # $1 = full or reduced
     local report zipname stage
     if [ "$1" = full ]; then
@@ -71,7 +101,7 @@ package() {    # $1 = full or reduced
     stage="$work/$1/$NAME"
     mkdir -p "$stage/report"
     cp -r "$work/bin" src docker .vscode "$stage/"
-    cp Makefile docker-compose.yml .dockerignore "$stage/"
+    cp docker-compose.yml .dockerignore "$stage/"
     cp "report/$report.pdf" "report/$report.docx" "$stage/report/"
 
     if [ "$1" = full ]; then
@@ -81,9 +111,11 @@ package() {    # $1 = full or reduced
         cp -r tests debug tools test_examples "$stage/"
         mkdir "$stage/starter_original"
         cp Lab2_DES/DES_tcp_server_client_program/*.c "$stage/starter_original/"
+        cp Makefile "$stage/"
         readme_full > "$stage/README.md"
     else
         rm -f "$stage/bin/des_test"
+        makefile_reduced > "$stage/Makefile"
         readme_reduced > "$stage/README.md"
     fi
     find "$stage" -name '__pycache__' -prune -exec rm -rf {} +

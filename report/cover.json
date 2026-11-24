@@ -6,13 +6,13 @@
   "lab": "Lab 2",
   "subject": "DES on Two Computers",
   "team_members": [
-    "[Name Surname - Student ID]",
-    "[Name Surname - Student ID]"
+    "Utku Helvacı - 18000051",
+    "Fehmi Alper Demir - 090701"
   ],
-  "lecturer": "[Lecturer name]",
-  "lab_assistant": "[Lab assistant name]",
+  "lecturer": "Prof. Dr. Gürcü Öz",
+  "lab_assistant": "Reza Asar",
   "year": "2026",
   "semester": "Fall 2026-2027",
-  "city": "[City]",
-  "country": "[Country]"
+  "city": "Famagusta",
+  "country": "Turkish Republic of North Cyprus"
 }

@@ -1,5 +1,5 @@
 hostname: machine-b
-eth0@if51        UP             172.28.10.20/24 
-eth0@if51        UP             b6:06:40:ee:67:4a <BROADCAST,MULTICAST,UP,LOWER_UP> 
+eth0@if45        UP             172.28.10.20/24 
+eth0@if45        UP             5a:a1:b7:4b:b0:c6 <BROADCAST,MULTICAST,UP,LOWER_UP> 
 default via 172.28.10.1 dev eth0 
 172.28.10.0/24 dev eth0 proto kernel scope link src 172.28.10.20 

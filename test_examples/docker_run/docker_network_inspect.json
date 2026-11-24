@@ -1,8 +1,8 @@
 [
     {
         "Name": "des_lan",
-        "Id": "fcc054ace62276096f05c752b24343025275ee066914afea7ad547b7be55df3a",
-        "Created": "2026-11-18T22:26:11.145436341+02:00",
+        "Id": "e0cecf71b073955a6616b18f3eb5a60e7166a3d2dbe5a0d519d402573334a786",
+        "Created": "2026-11-23T21:40:42.822975603+02:00",
         "Scope": "local",
         "Driver": "bridge",
         "EnableIPv4": true,
@@ -34,17 +34,17 @@
             "com.docker.compose.version": "2.40.3"
         },
         "Containers": {
-            "67245ace9b56dfdbce52b839473673f6fac5b6373b8c924f36c609303575dc8a": {
+            "0e1474b1a4f5e29b2a69614b9d6227e188653911d35342b80b4999bf29e27306": {
                 "Name": "machine-a",
-                "EndpointID": "e7e259b2bb16a4a2e3e3d9b20494e0b956104d21ada3232de2faae983f68fb22",
-                "MacAddress": "f6:28:68:3f:8a:18",
+                "EndpointID": "1bb1f6302fa3366c4ab2e0b907d9f7db77958bcb5bb42822d91dfb7964515aa1",
+                "MacAddress": "2a:db:82:59:b3:39",
                 "IPv4Address": "172.28.10.10/24",
                 "IPv6Address": ""
             },
-            "c96b3e8d264b32b96aabc095a6c2156d84451d1d7a8151f7a27c612a1a907285": {
+            "3a04a1ac0c2d72248ece94acd6fc529d6212bb67c21b45e651f2233c90c63152": {
                 "Name": "machine-b",
-                "EndpointID": "031c8339661812776f9fe60f3c36926692dfa04fa529c0da9ead2bf80c6b87db",
-                "MacAddress": "b6:06:40:ee:67:4a",
+                "EndpointID": "47ccabf89b3d362a6aa5c01865b9719e689e8efdbf999badf640ff582efbf504",
+                "MacAddress": "5a:a1:b7:4b:b0:c6",
                 "IPv4Address": "172.28.10.20/24",
                 "IPv6Address": ""
             }

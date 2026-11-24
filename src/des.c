@@ -1,11 +1,4 @@
 /*
- * des.c - DES block cipher (FIPS PUB 46-3) written so that EVERY step of the
- * algorithm is its own small function.  Each step function
- *   - takes its input as a parameter and returns its output (no side effects),
- *   - keeps the result in a named local variable before returning it, so the
- *     input and the output are both visible in the debugger's watch window
- *     when you stop on the return line,
- *   - is unit-tested in tests/test_des.c.
  *
  * The orchestrating functions (des_generate_round_keys, des_feistel, des_round,
  * des_process_block) call des_trace() after every step.  When a trace sink is

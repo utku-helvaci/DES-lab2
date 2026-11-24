@@ -1,0 +1,19 @@
+graph NET {
+  graph [fontname="Arial", fontsize=11, bgcolor="white", pad=0.1, nodesep=1.9, ranksep=0.4];
+  node  [shape=box, style="rounded,filled", fontname="Arial", fontsize=10.5,
+         fontcolor="#1a1a19", fillcolor="#eaf2fc", color="#2a78d6", penwidth=1.3,
+         margin="0.16,0.08"];
+  edge  [color="#4a4a48", penwidth=1.3, fontname="Arial", fontsize=9.5, fontcolor="#3a3a38"];
+  subgraph cluster_host {
+    label="Host computer (Linux, Docker Engine) - docker-compose.yml"; labeljust=l;
+    style="rounded"; color="#9a9993"; fontcolor="#6b6a64";
+    A [label=<<b>machine-a</b>  (container = computer A)<br/>hostname machine-a<br/>eth0  172.28.20.10/24<br/>./lab2 client 172.28.20.20<br/><font point-size="9" color="#6b6a64">Machine A: sends first</font>>];
+    BR [label=<<b>des_lan</b> (virtual Ethernet switch)<br/>subnet 172.28.20.0/24<br/>gateway 172.28.20.1>, fillcolor="#f3f3f1", color="#8a8984"];
+    B [label=<<b>machine-b</b>  (container = computer B)<br/>hostname machine-b<br/>eth0  172.28.20.20/24<br/>./lab2 server   (port 9000)<br/><font point-size="9" color="#6b6a64">Machine B: receives first</font>>];
+    { rank=same; A; B; }
+  }
+  A -- B [style=bold, color="#2a78d6", fontcolor="#2a78d6",
+          label=<TCP, port 9000<br/>length | DES ciphertext>];
+  A -- BR [label="  veth pair"];
+  B -- BR [label="  veth pair"];
+}

@@ -1,0 +1,28 @@
+# The two machines of Lab 2 on one virtual LAN.
+#
+#   docker compose up -d --build                                start both machines
+#   docker compose exec machine-b ./lab2 server                 terminal 1: Machine B
+#   docker compose exec machine-a ./lab2 client 172.28.20.20    terminal 2: Machine A
+#   docker compose down                                         stop both machines
+services:
+  machine-a:
+    build: .
+    hostname: machine-a
+    init: true
+    networks:
+      des_lan:
+        ipv4_address: 172.28.20.10
+
+  machine-b:
+    build: .
+    hostname: machine-b
+    init: true
+    networks:
+      des_lan:
+        ipv4_address: 172.28.20.20
+
+networks:
+  des_lan:
+    ipam:
+      config:
+        - subnet: 172.28.20.0/24
